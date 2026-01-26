@@ -6,9 +6,11 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+// TODO: Adjust for two flywheel motors
 public class Shooter {
     double distanceFromTarget;
     DcMotorEx flywheelMotor;
@@ -34,6 +36,7 @@ public class Shooter {
         flywheelMotor = hardwareMap.get(DcMotorEx.class, "flywheelMotor");
         flywheelMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         flywheelMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        flywheelMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
         this.follower = follower;
