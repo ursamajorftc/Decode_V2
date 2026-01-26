@@ -29,6 +29,9 @@ public class Intake {
         intakeMotor.setPower(1.0);
     }
 
+    /**
+     * Transfers ball to shooter
+     */
     public void transfer () {
         transferTimer.resetTimer();
     }

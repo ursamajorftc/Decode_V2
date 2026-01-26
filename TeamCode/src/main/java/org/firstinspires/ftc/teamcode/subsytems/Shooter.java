@@ -14,20 +14,26 @@ public class Shooter {
     DcMotorEx flywheelMotor;
     Servo pitchServo;
     Follower follower;
-    Ballistics ballistics; // Instance variable, not static class usage
+    Ballistics ballistics;
 
     final Pose REDTARGET = new Pose(137.0, 143.0);
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
-    // F is usually critical for flywheels. Set F to 1.0 / MaxVelocity initially
+    // TODO: Tune this!
     final PIDFController flywheelPIDF  = new PIDFController(0.0, 0.0, 0.0, 1.0/2800.0);
 
     boolean isRed;
 
+    /**
+     *
+     * @param hardwareMap Used to retrieve hardware from configuration file in driver hub
+     * @param follower Used to determine distance to target using odometry
+     * @param isRed Set per alliance color
+     */
     public Shooter (HardwareMap hardwareMap, Follower follower, boolean isRed) {
         flywheelMotor = hardwareMap.get(DcMotorEx.class, "flywheelMotor");
         flywheelMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        flywheelMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Required for custom PID
+        flywheelMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
         this.follower = follower;
@@ -37,27 +43,45 @@ public class Shooter {
         this.ballistics = new Ballistics();
     }
 
+    /**
+     * Called every loop to calculate distance from target
+     */
     public void update () {
-        Pose currentPosition = follower.getPose();
-        Pose target = isRed ? REDTARGET : BLUETARGET;
+        double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
+        double targetY = (isRed ? REDTARGET.getY() : BLUETARGET.getY());
+
+        double robotX = follower.getPose().getX();
+        double robotY = follower.getPose().getY();
+
         // Standard Euclidean distance calculation
-        distanceFromTarget = Math.hypot(target.getX() - currentPosition.getX(), target.getY() - currentPosition.getY());
+        distanceFromTarget = Math.hypot(targetX-robotX, targetY-robotY);
     }
 
+    /**
+     * Accelerates flywheel using Velocity PID based on distance from target
+     */
     public void accelerateFlywheel () {
+        // Retrieves Targets from Ballistic Class
         double targetVel = ballistics.calculateFlywheelSpeed(distanceFromTarget);
         double targetPitch = ballistics.calculatePitch(distanceFromTarget);
 
         // Calculate power based on velocity error
         double power = flywheelPIDF.calculate(flywheelMotor.getVelocity(), targetVel);
-
         flywheelMotor.setPower(power);
+
         pitchServo.setPosition(targetPitch);
     }
 
+    /**
+     * Stops flywheel
+     */
     public void idle () {
         flywheelMotor.setPower(0);
     }
+
+    /**
+     * Interpolated Look-up Table Class
+     */
     public static class Ballistics {
         InterpLUT flywheelLut = new InterpLUT();
         InterpLUT pitchLut = new InterpLUT();
@@ -67,7 +91,7 @@ public class Shooter {
         public double pitchCorrection = 0;
 
         public Ballistics () {
-            // FORMAT: .add(Distance, Value)
+            // Any request from LUT requires key to be in range
             flywheelLut.add(0, 1000);   // Safety defaults
             pitchLut.add(0, 0.5);
 
@@ -79,10 +103,20 @@ public class Shooter {
             pitchLut.createLUT();
         }
 
+        /**
+         *
+         * @param distance Distance from target
+         * @return Flywheel Speed in Ticks per second
+         */
         public double calculateFlywheelSpeed(double distance) {
             return flywheelLut.get(distance) + flywheelSpeedCorrection;
         }
 
+        /**
+         *
+         * @param distance Distance from target
+         * @return Pitch servo position
+         */
         public double calculatePitch (double distance) {
             return pitchLut.get(distance) + pitchCorrection;
         }

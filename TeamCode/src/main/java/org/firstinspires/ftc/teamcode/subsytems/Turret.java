@@ -10,12 +10,13 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
+// Everything is in RADIANS
 public class Turret {
     DcMotorEx turretMotor;
     Follower follower;
     Limelight3A limelight;
 
-    double turretPosition; // in Radians
+    double turretPosition;
 
     // TODO: TUNE THIS VALUE!
     final double RADIANSPERTICK = 1.0;
@@ -23,28 +24,39 @@ public class Turret {
     final Pose REDTARGET = new Pose(137.0, 143.0);
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
-    // Note: Limelight PID input is Degrees, Odometry PID input is Radians.
-    // You will need very different P values for these.
+    // TODO: Tune these. Expect very different P values!
     final PIDFController limelightPIDF = new PIDFController(0.03, 0.0, 0.001, 0.0);
     final PIDFController odometryPIDF = new PIDFController(0.8, 0.0, 0.05, 0.0);
 
     double relativeTargetHeading;
     boolean isRed;
 
+    /**
+     *
+     * @param hardwareMap Used to retrieve hardware from configuration file in driver hub
+     * @param follower Used as fallback to determine distance to target using odometry
+     * @param isRed Set per alliance color
+     */
     public Turret (HardwareMap hardwareMap, Follower follower, boolean isRed) {
+        // Stores follower and alliance color
         this.follower = follower;
         this.isRed = isRed;
 
+        // Declares and sets up turret motor
         turretMotor = hardwareMap.get(DcMotorEx.class, "turretMotor");
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        // Declares and sets up limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(isRed ? 0 : 1);
         limelight.start();
     }
 
+    /**
+     * Calculates relative position of the target using odometry
+     */
     public void update () {
         // Calculate turret angle relative to the robot chassis
         turretPosition = turretMotor.getCurrentPosition() * RADIANSPERTICK;
@@ -65,27 +77,39 @@ public class Turret {
         relativeTargetHeading = AngleUnit.normalizeRadians(fieldAngleToTarget - robotHeading);
     }
 
+    /**
+     * Aim using limelight or odometry as fallback
+     */
     public void aim () {
+        // Retrieve limelight data
         LLResult llResult = limelight.getLatestResult();
 
         if (llResult != null && llResult.isValid()) {
             // Limelight tx is in degrees. Target is 0.
-            double output = limelightPIDF.calculate(llResult.getTx(), 0);
-            turretMotor.setPower(output);
+            double power = limelightPIDF.calculate(llResult.getTx(), 0);
+            turretMotor.setPower(power);
         } else {
             // Fallback to Odometry
             // We want turretPosition to match relativeTargetHeading
-            double output = odometryPIDF.calculate(turretPosition, relativeTargetHeading);
-            turretMotor.setPower(output);
+            double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading);
+            turretMotor.setPower(power);
         }
     }
 
+    /**
+     * Stops turret and limelight when not aiming
+     */
     public void idle () {
         // Keep turret centered forward (position 0 relative to robot)
         turretMotor.setPower(odometryPIDF.calculate(turretPosition, 0));
+        limelight.pause();
     }
 
+    /**
+     * Avoid using this, use idle() method instead
+     */
     public void stop () {
         turretMotor.setPower(0);
+        limelight.stop();
     }
 }

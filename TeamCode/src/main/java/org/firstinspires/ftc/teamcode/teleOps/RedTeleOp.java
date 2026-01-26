@@ -43,8 +43,8 @@ public class RedTeleOp extends OpMode {
     @Override
     public void loop() {
         follower.setTeleOpDrive(
-                -gamepad1.left_stick_y, // Forward/Back
-                -gamepad1.left_stick_x, // Strafe
+                -gamepad1.left_stick_x, // Forward/Back
+                -gamepad1.left_stick_y, // Strafe
                 -gamepad1.right_stick_x, // Turn
                 true // TRUE = Robot Centric
         );
