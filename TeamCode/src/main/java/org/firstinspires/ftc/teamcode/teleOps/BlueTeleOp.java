@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleOps;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.follower.FollowerConstants;
-import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -73,5 +71,10 @@ public class BlueTeleOp extends OpMode {
         intake.update();
         turret.update();
         shooter.update();
+    }
+
+    @Override
+    public void stop () {
+        turret.stop();
     }
 }
