@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleOps;
 
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -14,12 +16,13 @@ import java.util.List;
 
 @TeleOp (name = "Blue TeleOp", group = "Competition TeleOps")
 public class BlueTeleOp extends OpMode {
-    Intake intake;
-    Turret turret;
-    Shooter shooter;
-    Follower follower;
+    private Intake intake;
+    private Turret turret;
+    private Shooter shooter;
+    private Follower follower;
+    private GamepadEx driver2Op;
 
-    boolean previousTriggerState = false;
+    private boolean previousTriggerState = false;
 
     @Override
     public void init() {
@@ -36,6 +39,8 @@ public class BlueTeleOp extends OpMode {
         intake = new Intake(hardwareMap);
         turret = new Turret(hardwareMap, follower, false);
         shooter = new Shooter(hardwareMap, follower, false);
+
+        driver2Op = new GamepadEx(gamepad2);
     }
 
     @Override
@@ -67,10 +72,29 @@ public class BlueTeleOp extends OpMode {
             shooter.idle();
         }
 
+        // Uses FTCLib gamepad methods for edge detection
+        if (driver2Op.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
+            shooter.decreaseFlywheelSpeed();
+        }
+        if (driver2Op.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
+            shooter.increaseFlywheelSpeed();
+        }
+        if (driver2Op.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+            shooter.increaseHeight();
+        }
+        if (driver2Op.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+            shooter.decreaseHeight();
+        }
+        if (driver2Op.wasJustPressed(GamepadKeys.Button.B)) {
+            shooter.resetLuts();
+        }
+
+
         follower.update();
         intake.update();
         turret.update();
         shooter.update();
+        driver2Op.readButtons();
     }
 
     @Override

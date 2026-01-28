@@ -6,7 +6,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -123,5 +122,16 @@ public class Shooter {
         public double calculatePitch (double distance) {
             return pitchLut.get(distance) + pitchCorrection;
         }
+    }
+    public double getFlywheelPower() { return flywheelMotor.getPower(); }
+    public void increaseHeight() { ballistics.pitchCorrection += 0.02; }
+    public void decreaseHeight() { ballistics.pitchCorrection -= 0.02; }
+    public void adjustHeight(double pitchCorrection) { ballistics.pitchCorrection += pitchCorrection; }
+    public void increaseFlywheelSpeed() { ballistics.flywheelSpeedCorrection += 0.1; }
+    public void decreaseFlywheelSpeed() { ballistics.flywheelSpeedCorrection -= 0.1; }
+    public void adjustFlywheelSpeed(double flywheelSpeedCorrection) { ballistics.flywheelSpeedCorrection += flywheelSpeedCorrection; }
+    public void resetLuts() {
+        ballistics.pitchCorrection = 0;
+        ballistics.flywheelSpeedCorrection = 0;
     }
 }
