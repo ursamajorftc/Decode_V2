@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 // TODO: Adjust for two flywheel motors
+// TODO: Right motor will be normal, left will be reversed
 public class Shooter {
     double distanceFromTarget;
     DcMotorEx flywheelMotor;

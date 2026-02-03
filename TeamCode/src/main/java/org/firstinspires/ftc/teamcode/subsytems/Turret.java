@@ -5,6 +5,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -13,7 +14,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 // Everything is in RADIANS
 public class Turret {
-    DcMotorEx turretMotor;
+    CRServo leftTurretServo;
+    CRServo rightTurretServo;
+    DcMotorEx flywheelMotor;
     Follower follower;
     Limelight3A limelight;
 
@@ -43,12 +46,12 @@ public class Turret {
         this.follower = follower;
         this.isRed = isRed;
 
-        // Declares and sets up turret motor
-        turretMotor = hardwareMap.get(DcMotorEx.class, "turretMotor");
-        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//        turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        // Declares and sets up turret servos
+        leftTurretServo = hardwareMap.get(CRServo.class, "leftTurretServo");
+        rightTurretServo = hardwareMap.get(CRServo.class, "rightTurretServo");
+
+        // We're using flywheel motor's position as positioning for the turret
+        flywheelMotor = hardwareMap.get(DcMotorEx.class, "flywheelMotorRight");
 
         // Declares and sets up limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -61,7 +64,7 @@ public class Turret {
      */
     public void update () {
         // Calculate turret angle relative to the robot chassis
-        turretPosition = turretMotor.getCurrentPosition() * RADIANSPERTICK;
+        turretPosition = flywheelMotor.getCurrentPosition() * RADIANSPERTICK;
 
         // Get target coordinates
         double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
@@ -89,12 +92,14 @@ public class Turret {
         if (llResult != null && llResult.isValid()) {
             // Limelight tx is in degrees. Target is 0.
             double power = limelightPIDF.calculate(llResult.getTx(), 0);
-            turretMotor.setPower(power);
+            rightTurretServo.setPower(power);
+            leftTurretServo.setPower(power);
         } else {
             // Fallback to Odometry
             // We want turretPosition to match relativeTargetHeading
             double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading);
-            turretMotor.setPower(power);
+            rightTurretServo.setPower(power);
+            leftTurretServo.setPower(power);
         }
     }
 
@@ -103,7 +108,8 @@ public class Turret {
      */
     public void idle () {
         // Keep turret centered forward (position 0 relative to robot)
-        turretMotor.setPower(odometryPIDF.calculate(turretPosition, 0));
+        rightTurretServo.setPower(odometryPIDF.calculate(turretPosition, 0));
+        leftTurretServo.setPower(odometryPIDF.calculate(turretPosition, 0));
         limelight.pause();
     }
 
@@ -111,7 +117,8 @@ public class Turret {
      * Avoid using this, use idle() method instead
      */
     public void stop () {
-        turretMotor.setPower(0);
+        rightTurretServo.setPower(0);
+        leftTurretServo.setPower(0);
         limelight.stop();
     }
 }
