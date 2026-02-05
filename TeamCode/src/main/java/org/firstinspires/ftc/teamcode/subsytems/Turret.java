@@ -1,29 +1,29 @@
 package org.firstinspires.ftc.teamcode.subsytems;
 
 import com.arcrobotics.ftclib.controller.PIDFController;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
+// Servo turret right is control hub port 5
 // Everything is in RADIANS
+@Configurable
 public class Turret {
     CRServo leftTurretServo;
     CRServo rightTurretServo;
-    DcMotorEx flywheelMotor;
+    DcMotorEx intakeMotor;
     Follower follower;
     Limelight3A limelight;
 
     double turretPosition;
 
     // TODO: TUNE THIS VALUE!
-    final double RADIANSPERTICK = 1.0;
+    public static double RADIANSPERTICK = 1.0;
 
     final Pose REDTARGET = new Pose(137.0, 143.0);
     final Pose BLUETARGET = new Pose (6.0, 143.0);
@@ -51,7 +51,7 @@ public class Turret {
         rightTurretServo = hardwareMap.get(CRServo.class, "rightTurretServo");
 
         // We're using flywheel motor's position as positioning for the turret
-        flywheelMotor = hardwareMap.get(DcMotorEx.class, "flywheelMotorRight");
+        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
 
         // Declares and sets up limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -64,7 +64,7 @@ public class Turret {
      */
     public void update () {
         // Calculate turret angle relative to the robot chassis
-        turretPosition = flywheelMotor.getCurrentPosition() * RADIANSPERTICK;
+        turretPosition = AngleUnit.normalizeRadians(intakeMotor.getCurrentPosition() * RADIANSPERTICK);
 
         // Get target coordinates
         double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
@@ -86,18 +86,23 @@ public class Turret {
      * Aim using limelight or odometry as fallback
      */
     public void aim () {
+        limelight.start();
         // Retrieve limelight data
         LLResult llResult = limelight.getLatestResult();
 
         if (llResult != null && llResult.isValid()) {
             // Limelight tx is in degrees. Target is 0.
             double power = limelightPIDF.calculate(llResult.getTx(), 0);
+            power = normalizePower(power);
+
             rightTurretServo.setPower(power);
             leftTurretServo.setPower(power);
         } else {
             // Fallback to Odometry
             // We want turretPosition to match relativeTargetHeading
             double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading);
+            power = normalizePower(power);
+
             rightTurretServo.setPower(power);
             leftTurretServo.setPower(power);
         }
@@ -108,8 +113,9 @@ public class Turret {
      */
     public void idle () {
         // Keep turret centered forward (position 0 relative to robot)
-        rightTurretServo.setPower(odometryPIDF.calculate(turretPosition, 0));
-        leftTurretServo.setPower(odometryPIDF.calculate(turretPosition, 0));
+        double power = normalizePower(odometryPIDF.calculate(turretPosition, 0));
+        rightTurretServo.setPower(power);
+        leftTurretServo.setPower(power);
         limelight.pause();
     }
 
@@ -121,4 +127,15 @@ public class Turret {
         leftTurretServo.setPower(0);
         limelight.stop();
     }
+
+    private double normalizePower (double power) {
+        if (turretPosition >= Math.PI/2 || turretPosition <= -Math.PI/2) {
+            return 0;
+        } else {
+            return Math.max(0, Math.min(1, power));
+        }
+    }
+    public double getTurretPosition() { return intakeMotor.getCurrentPosition(); }
+    public double getRelativeTargetHeading() { return relativeTargetHeading; }
+
 }

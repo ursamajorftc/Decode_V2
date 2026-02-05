@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.teleOps;
 
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -20,7 +22,8 @@ public class BlueTeleOp extends OpMode {
     private Turret turret;
     private Shooter shooter;
     private Follower follower;
-    private GamepadEx driver2Op;
+    private GamepadEx controller2;
+    private TelemetryManager telemetry;
 
     private boolean previousTriggerState = false;
 
@@ -40,11 +43,21 @@ public class BlueTeleOp extends OpMode {
         turret = new Turret(hardwareMap, follower, false);
         shooter = new Shooter(hardwareMap, follower, false);
 
-        driver2Op = new GamepadEx(gamepad2);
+        controller2 = new GamepadEx(gamepad2);
+
+        telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+
     }
 
     @Override
     public void loop() {
+        follower.update();
+        intake.update();
+        turret.update();
+        shooter.update();
+        controller2.readButtons();
+        telemetry.update();
+
         follower.setTeleOpDrive(
                 -gamepad1.left_stick_x, // Forward/Back
                 -gamepad1.left_stick_y, // Strafe
@@ -67,34 +80,38 @@ public class BlueTeleOp extends OpMode {
         if (gamepad2.right_bumper) {
             turret.aim();
             shooter.accelerateFlywheel();
+            intake.openGates();
         } else {
             turret.idle();
             shooter.idle();
+            intake.idle();
         }
 
+        if (gamepad1.left_bumper) { shooter.zeroPitchServo(); }
+
         // Uses FTCLib gamepad methods for edge detection
-        if (driver2Op.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
+        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
             shooter.decreaseFlywheelSpeed();
         }
-        if (driver2Op.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
+        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
             shooter.increaseFlywheelSpeed();
         }
-        if (driver2Op.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
             shooter.increaseHeight();
         }
-        if (driver2Op.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
             shooter.decreaseHeight();
         }
-        if (driver2Op.wasJustPressed(GamepadKeys.Button.B)) {
+        if (controller2.wasJustPressed(GamepadKeys.Button.B)) {
             shooter.resetLuts();
         }
 
-
-        follower.update();
-        intake.update();
-        turret.update();
-        shooter.update();
-        driver2Op.readButtons();
+        telemetry.debug("Turret Position", turret.getTurretPosition());
+        telemetry.debug("Distance From Target", shooter.getDistanceFromTarget());
+        telemetry.debug("Relative Target Angle", turret.getRelativeTargetHeading());
+        telemetry.debug("Flywheel Power", shooter.getFlywheelPower());
+        telemetry.debug("Flywheel Speed", shooter.getFlywheelSpeed());
+        telemetry.debug("Pitch Servo Position", shooter.getPitch());
     }
 
     @Override

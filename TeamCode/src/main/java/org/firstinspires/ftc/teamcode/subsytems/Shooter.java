@@ -6,14 +6,14 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-// TODO: Adjust for two flywheel motors
-// TODO: Right motor will be normal, left will be reversed
 public class Shooter {
     double distanceFromTarget;
-    DcMotorEx flywheelMotor;
+    DcMotorEx flywheelMotorRight;
+    DcMotorEx flywheelMotorLeft;
     Servo pitchServo;
     Follower follower;
     Ballistics ballistics;
@@ -22,7 +22,7 @@ public class Shooter {
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
     // TODO: Tune this!
-    final PIDFController flywheelPIDF  = new PIDFController(0.0, 0.0, 0.0, 1.0/2800.0);
+    final PIDFController flywheelPIDF  = new PIDFController(0.00001, 0.0, 0.0, 0.05);
 
     boolean isRed;
 
@@ -33,10 +33,14 @@ public class Shooter {
      * @param isRed Set per alliance color
      */
     public Shooter (HardwareMap hardwareMap, Follower follower, boolean isRed) {
-        flywheelMotor = hardwareMap.get(DcMotorEx.class, "flywheelMotor");
-        flywheelMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        flywheelMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//        flywheelMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheelMotorRight = hardwareMap.get(DcMotorEx.class, "flywheelMotorRight");
+        flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheelMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        flywheelMotorLeft = hardwareMap.get(DcMotorEx.class, "flywheelMotorLeft");
+        flywheelMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheelMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        flywheelMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
         this.follower = follower;
@@ -65,21 +69,24 @@ public class Shooter {
      */
     public void accelerateFlywheel () {
         // Retrieves Targets from Ballistic Class
-        double targetVel = ballistics.calculateFlywheelSpeed(distanceFromTarget);
-        double targetPitch = ballistics.calculatePitch(distanceFromTarget);
+//        double targetVel = ballistics.calculateFlywheelSpeed(distanceFromTarget);
+//        double targetPitch = ballistics.calculatePitch(distanceFromTarget);
 
         // Calculate power based on velocity error
-        double power = flywheelPIDF.calculate(flywheelMotor.getVelocity(), targetVel);
-        flywheelMotor.setPower(power);
+        // TODO: Revert back to interpolated values once tuned
+        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), 2000);
+        flywheelMotorRight.setPower(power);
+        flywheelMotorLeft.setPower(power);
 
-        pitchServo.setPosition(targetPitch);
+        pitchServo.setPosition(0.5);
     }
 
     /**
      * Stops flywheel
      */
     public void idle () {
-        flywheelMotor.setPower(0);
+        flywheelMotorRight.setPower(0);
+        flywheelMotorLeft.setPower(0);
     }
 
     /**
@@ -124,7 +131,6 @@ public class Shooter {
             return pitchLut.get(distance) + pitchCorrection;
         }
     }
-    public double getFlywheelPower() { return flywheelMotor.getPower(); }
     public void increaseHeight() { ballistics.pitchCorrection += 0.02; }
     public void decreaseHeight() { ballistics.pitchCorrection -= 0.02; }
     public void adjustHeight(double pitchCorrection) { ballistics.pitchCorrection += pitchCorrection; }
@@ -135,4 +141,9 @@ public class Shooter {
         ballistics.pitchCorrection = 0;
         ballistics.flywheelSpeedCorrection = 0;
     }
+    public double getDistanceFromTarget () { return distanceFromTarget; }
+    public double getFlywheelPower() { return flywheelMotorRight.getPower(); }
+    public double getFlywheelSpeed() { return flywheelMotorRight.getVelocity(); }
+    public double getPitch () { return pitchServo.getPosition(); }
+    public void zeroPitchServo() { pitchServo.setPosition(0.0); }
 }
