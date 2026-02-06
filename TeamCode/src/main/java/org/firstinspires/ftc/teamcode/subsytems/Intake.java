@@ -15,21 +15,22 @@ public class Intake {
     Servo rightGateServo;
     Servo leftGateServo;
 
-    public static double rightGateServoOpen = 0.5;
-    public static double rightGateServoClosed = 0.4;
-    public static double leftGateServoOpen = 0.5;
-    public static double leftGateServoClosed = 0.4;
+    public static double rightGateServoOpen = 0;
+    public static double rightGateServoClosed = 1;
+    public static double leftGateServoOpen = 0;
+    public static double leftGateServoClosed = 1;
+
+    private double time = 1;
 
     /**
      * @param hardwareMap Used to retrieve hardware from configuration file in driver hub
      */
     public Intake(HardwareMap hardwareMap) {
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
-//        intakeMotor.setDirection(DcMotorEx.Direction.REVERSE);
         intakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
         transferMotor = hardwareMap.get(DcMotorEx.class, "transferMotor");
-//        transferMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        transferMotor.setDirection(DcMotorEx.Direction.REVERSE);
         transferMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
         rightGateServo = hardwareMap.get(Servo.class, "rightGateServo");
@@ -64,12 +65,10 @@ public class Intake {
      * Moves balls across queue after ball is transferred
      */
     public void update () {
-        double time = transferTimer.getElapsedTimeSeconds();
-        // TODO: Tune the amount of time the transfer motor should run
-        if (time < 1.0) {
-            transferMotor.setPower(0.75);
-        } else {
-            transferMotor.setPower(0);
+        time = transferTimer.getElapsedTimeSeconds();
+        // TODO: Tune the amount of time the intake motor should run
+        if (time < 0.7) {
+            intakeMotor.setPower(1);
         }
     }
 }

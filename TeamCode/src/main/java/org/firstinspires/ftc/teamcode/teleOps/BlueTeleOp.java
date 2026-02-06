@@ -5,6 +5,7 @@ import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -23,9 +24,10 @@ public class BlueTeleOp extends OpMode {
     private Shooter shooter;
     private Follower follower;
     private GamepadEx controller2;
-    private TelemetryManager telemetry;
+    private TelemetryManager telemetryManager;
 
     private boolean previousTriggerState = false;
+
 
     @Override
     public void init() {
@@ -37,7 +39,11 @@ public class BlueTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.update();
+        follower.setStartingPose(new Pose(53.6, 56.9, Math.PI/2));
+
+        for (int i = 0; i < 3; i++) {
+            follower.update();
+        }
 
         intake = new Intake(hardwareMap);
         turret = new Turret(hardwareMap, follower, false);
@@ -45,9 +51,11 @@ public class BlueTeleOp extends OpMode {
 
         controller2 = new GamepadEx(gamepad2);
 
-        telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+        telemetryManager = PanelsTelemetry.INSTANCE.getTelemetry();
 
     }
+
+    public void start() {follower.startTeleOpDrive();}
 
     @Override
     public void loop() {
@@ -56,19 +64,27 @@ public class BlueTeleOp extends OpMode {
         turret.update();
         shooter.update();
         controller2.readButtons();
-        telemetry.update();
+        telemetryManager.update();
 
-        follower.setTeleOpDrive(
-                -gamepad1.left_stick_x, // Forward/Back
-                -gamepad1.left_stick_y, // Strafe
-                -gamepad1.right_stick_x, // Turn
-                true // TRUE = Robot Centric
-        );
+        if (follower.getPose() != null) {
+            follower.setTeleOpDrive(
+                    -gamepad1.left_stick_y, // Forward/Back
+                    -gamepad1.left_stick_x, // Strafe
+                    -gamepad1.right_stick_x, // Turn
+                    true // TRUE = Robot Centric
+            );
+        }
 
         if (gamepad2.a) {
             intake.intake();
         } else {
             intake.stop();
+        }
+
+        if(gamepad1.dpad_right){
+            shooter.maxPitchServo();
+        }else if (gamepad1.dpad_left){
+            shooter.zeroPitchServo();
         }
 
         boolean currentTriggerState = gamepad2.right_trigger > 0.1;
@@ -80,11 +96,11 @@ public class BlueTeleOp extends OpMode {
         if (gamepad2.right_bumper) {
             turret.aim();
             shooter.accelerateFlywheel();
-            intake.openGates();
+//            intake.openGates();
         } else {
             turret.idle();
             shooter.idle();
-            intake.idle();
+//            intake.idle();
         }
 
         if (gamepad1.left_bumper) { shooter.zeroPitchServo(); }
@@ -106,12 +122,12 @@ public class BlueTeleOp extends OpMode {
             shooter.resetLuts();
         }
 
-        telemetry.debug("Turret Position", turret.getTurretPosition());
-        telemetry.debug("Distance From Target", shooter.getDistanceFromTarget());
-        telemetry.debug("Relative Target Angle", turret.getRelativeTargetHeading());
-        telemetry.debug("Flywheel Power", shooter.getFlywheelPower());
-        telemetry.debug("Flywheel Speed", shooter.getFlywheelSpeed());
-        telemetry.debug("Pitch Servo Position", shooter.getPitch());
+        telemetry.addData("Turret Position", turret.getTurretPosition());
+        telemetry.addData("Distance From Target", shooter.getDistanceFromTarget());
+        telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());
+        telemetry.addData("Flywheel Power", shooter.getFlywheelPower());
+        telemetry.addData("Flywheel Speed", shooter.getFlywheelSpeed());
+        telemetry.addData("Pitch Servo Position", shooter.getPitch());
     }
 
     @Override

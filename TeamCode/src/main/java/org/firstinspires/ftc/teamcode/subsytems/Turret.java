@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-// Servo turret right is control hub port 5
+// Servo turret left is control hub port 5
 // Everything is in RADIANS
 @Configurable
 public class Turret {
@@ -22,6 +22,8 @@ public class Turret {
 
     double turretPosition;
 
+    double isLLgetting;
+
     // TODO: TUNE THIS VALUE!
     public static double RADIANSPERTICK = 1.0;
 
@@ -29,8 +31,8 @@ public class Turret {
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
     // TODO: Tune these. Expect very different P values!
-    final PIDFController limelightPIDF = new PIDFController(0.03, 0.0, 0.001, 0.0);
-    final PIDFController odometryPIDF = new PIDFController(0.8, 0.0, 0.05, 0.0);
+    final PIDFController limelightPIDF = new PIDFController(0.01, 0.0, 0.001, 0.01);
+    final PIDFController odometryPIDF = new PIDFController(0.3, 0.0, 0.003, 0.0);
 
     double relativeTargetHeading;
     boolean isRed;
@@ -93,18 +95,19 @@ public class Turret {
         if (llResult != null && llResult.isValid()) {
             // Limelight tx is in degrees. Target is 0.
             double power = limelightPIDF.calculate(llResult.getTx(), 0);
-            power = normalizePower(power);
-
+            //power = normalizePower(power);
+//            power = 0;
+            isLLgetting = power;
             rightTurretServo.setPower(power);
             leftTurretServo.setPower(power);
         } else {
             // Fallback to Odometry
             // We want turretPosition to match relativeTargetHeading
-            double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading);
-            power = normalizePower(power);
+//            double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading);
+//            power = normalizePower(power);
 
-            rightTurretServo.setPower(power);
-            leftTurretServo.setPower(power);
+            rightTurretServo.setPower(0);
+            leftTurretServo.setPower(0);
         }
     }
 
@@ -113,9 +116,11 @@ public class Turret {
      */
     public void idle () {
         // Keep turret centered forward (position 0 relative to robot)
-        double power = normalizePower(odometryPIDF.calculate(turretPosition, 0));
-        rightTurretServo.setPower(power);
-        leftTurretServo.setPower(power);
+//        double power = normalizePower(odometryPIDF.calculate(turretPosition, 0));
+//        rightTurretServo.setPower(power);
+//        leftTurretServo.setPower(power);
+        rightTurretServo.setPower(0);
+        leftTurretServo.setPower(0);
         limelight.pause();
     }
 
@@ -132,10 +137,12 @@ public class Turret {
         if (turretPosition >= Math.PI/2 || turretPosition <= -Math.PI/2) {
             return 0;
         } else {
-            return Math.max(0, Math.min(1, power));
+            return Math.max(-1, Math.min(1, power));
         }
     }
     public double getTurretPosition() { return intakeMotor.getCurrentPosition(); }
     public double getRelativeTargetHeading() { return relativeTargetHeading; }
+
+    public double checkLL(){ return isLLgetting; }
 
 }

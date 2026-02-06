@@ -22,7 +22,7 @@ public class Shooter {
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
     // TODO: Tune this!
-    final PIDFController flywheelPIDF  = new PIDFController(0.00001, 0.0, 0.0, 0.05);
+    final PIDFController flywheelPIDF  = new PIDFController(0.01, 0.0, 0.0, 0.05);
 
     boolean isRed;
 
@@ -33,14 +33,14 @@ public class Shooter {
      * @param isRed Set per alliance color
      */
     public Shooter (HardwareMap hardwareMap, Follower follower, boolean isRed) {
-        flywheelMotorRight = hardwareMap.get(DcMotorEx.class, "flywheelMotorRight");
-        flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheelMotorRight = hardwareMap.get(DcMotorEx.class, "rightFlywheelMotor");
+        flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheelMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        flywheelMotorLeft = hardwareMap.get(DcMotorEx.class, "flywheelMotorLeft");
-        flywheelMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheelMotorLeft = hardwareMap.get(DcMotorEx.class, "leftFlywheelMotor");
+        flywheelMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheelMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        flywheelMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
+//        flywheelMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
         this.follower = follower;
@@ -74,11 +74,11 @@ public class Shooter {
 
         // Calculate power based on velocity error
         // TODO: Revert back to interpolated values once tuned
-        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), 2000);
+        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), 14.7); // 16.666 is max
         flywheelMotorRight.setPower(power);
         flywheelMotorLeft.setPower(power);
 
-        pitchServo.setPosition(0.5);
+        pitchServo.setPosition(0.025); //0 highest, 1 lowest
     }
 
     /**
@@ -106,8 +106,11 @@ public class Shooter {
             pitchLut.add(0, 0.5);
 
             // TODO: Add real data points here
-            flywheelLut.add(55, 1500);
-            pitchLut.add(55, 0.45);
+            flywheelLut.add(112.190418486, 13);
+
+
+            pitchLut.add(112.190418486, 0.1);
+
 
             flywheelLut.createLUT();
             pitchLut.createLUT();
@@ -146,4 +149,13 @@ public class Shooter {
     public double getFlywheelSpeed() { return flywheelMotorRight.getVelocity(); }
     public double getPitch () { return pitchServo.getPosition(); }
     public void zeroPitchServo() { pitchServo.setPosition(0.0); }
+    public void maxPitchServo() {pitchServo.setPosition(1);}
+
+    public boolean isPitchServoThere(){
+        if (pitchServo != null){
+            return true;
+        }else {
+            return false;
+        }
+    }
 }
