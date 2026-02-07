@@ -39,7 +39,7 @@ public class BlueTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(53.6, 56.9, Math.PI/2));
+        follower.setStartingPose(new Pose(53.351,25, Math.PI));
 
         for (int i = 0; i < 3; i++) {
             follower.update();
@@ -79,13 +79,20 @@ public class BlueTeleOp extends OpMode {
             intake.intake();
         } else {
             intake.stop();
+            if (gamepad2.right_stick_y > 0) {
+                shooter.backSpin(gamepad2.right_stick_y);
+                intake.backSpin(gamepad2.right_stick_y);
+            }
+        }
+        if (gamepad2.b) {
+            intake.transfer();
         }
 
-        if(gamepad1.dpad_right){
-            shooter.maxPitchServo();
-        }else if (gamepad1.dpad_left){
-            shooter.zeroPitchServo();
-        }
+//        if (gamepad1.dpad_right){
+//            shooter.maxPitchServo();
+//        }else if (gamepad1.dpad_left){
+//            shooter.zeroPitchServo();
+//        }
 
         boolean currentTriggerState = gamepad2.right_trigger > 0.1;
         if (currentTriggerState && !previousTriggerState) {
@@ -101,9 +108,10 @@ public class BlueTeleOp extends OpMode {
             turret.idle();
             shooter.idle();
 //            intake.idle();
+            turret.adjustTurret(gamepad2.left_stick_x);
         }
 
-        if (gamepad1.left_bumper) { shooter.zeroPitchServo(); }
+//        if (gamepad1.left_bumper) { shooter.zeroPitchServo(); }
 
         // Uses FTCLib gamepad methods for edge detection
         if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
@@ -118,7 +126,7 @@ public class BlueTeleOp extends OpMode {
         if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
             shooter.decreaseHeight();
         }
-        if (controller2.wasJustPressed(GamepadKeys.Button.B)) {
+        if (controller2.wasJustPressed(GamepadKeys.Button.X)) {
             shooter.resetLuts();
         }
 
@@ -128,6 +136,7 @@ public class BlueTeleOp extends OpMode {
         telemetry.addData("Flywheel Power", shooter.getFlywheelPower());
         telemetry.addData("Flywheel Speed", shooter.getFlywheelSpeed());
         telemetry.addData("Pitch Servo Position", shooter.getPitch());
+        telemetry.addData("Voltage", shooter.getVoltage());
     }
 
     @Override

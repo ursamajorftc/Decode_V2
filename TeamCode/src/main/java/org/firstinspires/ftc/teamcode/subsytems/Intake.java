@@ -40,15 +40,23 @@ public class Intake {
     public void intake () {
         intakeMotor.setPower(1.0);
     }
+    public void intake (double power) {intakeMotor.setPower(power);}
+    public void transfer () {transferMotor.setPower(1.0);}
 
     /**
      * Transfers ball to shooter
      */
-    public void transfer () {
-        transferTimer.resetTimer();
+
+
+    public void stop () {
+        intakeMotor.setPower(0);
+        transferMotor.setPower(0);
     }
 
-    public void stop () { intakeMotor.setPower(0); }
+    public void backSpin (double power) {
+        intakeMotor.setPower(-Math.abs(power));
+
+    }
 
     public void openGates(){
         rightGateServo.setPosition(rightGateServoOpen);
@@ -65,10 +73,10 @@ public class Intake {
      * Moves balls across queue after ball is transferred
      */
     public void update () {
-        time = transferTimer.getElapsedTimeSeconds();
-        // TODO: Tune the amount of time the intake motor should run
-        if (time < 0.7) {
-            intakeMotor.setPower(1);
-        }
+//        time = transferTimer.getElapsedTimeSeconds();
+//        // TODO: Tune the amount of time the intake motor should run
+//        if (time < 0.7) {
+//            intakeMotor.setPower(1);
+//        }
     }
 }

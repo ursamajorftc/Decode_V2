@@ -4,11 +4,14 @@ import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 
 public class Shooter {
     double distanceFromTarget;
@@ -18,11 +21,13 @@ public class Shooter {
     Follower follower;
     Ballistics ballistics;
 
+    LynxModule hub;
+
     final Pose REDTARGET = new Pose(137.0, 143.0);
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
     // TODO: Tune this!
-    final PIDFController flywheelPIDF  = new PIDFController(0.01, 0.0, 0.0, 0.05);
+    final PIDFController flywheelPIDF  = new PIDFController(0.07, 0.0, 0.0, 0.05);
 
     boolean isRed;
 
@@ -48,6 +53,8 @@ public class Shooter {
 
         // Initialize Ballistics (fills the LUTs)
         this.ballistics = new Ballistics();
+
+        hub = hardwareMap.getAll(LynxModule.class).get(0);
     }
 
     /**
@@ -74,11 +81,11 @@ public class Shooter {
 
         // Calculate power based on velocity error
         // TODO: Revert back to interpolated values once tuned
-        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), 14.7); // 16.666 is max
+        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), ballistics.calculateFlywheelSpeed(distanceFromTarget)) *  (13/ hub.getInputVoltage(VoltageUnit.VOLTS)); // 16.666 is max
         flywheelMotorRight.setPower(power);
         flywheelMotorLeft.setPower(power);
 
-        pitchServo.setPosition(0.025); //0 highest, 1 lowest
+        pitchServo.setPosition(ballistics.calculatePitch(distanceFromTarget)); //0 highest, 1 lowest
     }
 
     /**
@@ -87,6 +94,11 @@ public class Shooter {
     public void idle () {
         flywheelMotorRight.setPower(0);
         flywheelMotorLeft.setPower(0);
+    }
+
+    public void backSpin (double power) {
+        flywheelMotorRight.setPower(-Math.abs(power));
+        flywheelMotorLeft.setPower(-Math.abs(power));
     }
 
     /**
@@ -102,14 +114,30 @@ public class Shooter {
 
         public Ballistics () {
             // Any request from LUT requires key to be in range
-            flywheelLut.add(0, 1000);   // Safety defaults
-            pitchLut.add(0, 0.5);
+            flywheelLut.add(0, 4.7);   // Safety defaults
+            pitchLut.add(0, 0.042);
 
             // TODO: Add real data points here
-            flywheelLut.add(112.190418486, 13);
 
 
-            pitchLut.add(112.190418486, 0.1);
+            flywheelLut.add(60.2189384516,5);
+            flywheelLut.add(71.2380348421,5);
+            flywheelLut.add(91.8430034076,5);
+            flywheelLut.add(100.883309198,5.1);
+            flywheelLut.add(102.592238687,5.3);
+            flywheelLut.add(116.89333451,5.3);
+            flywheelLut.add(141.704101355,5.5);
+            flywheelLut.add(200, 6);
+
+            pitchLut.add(60.2189384516,0.045);
+            pitchLut.add(71.2380348421,0.045);
+            pitchLut.add(91.8430034076,0.04);
+            pitchLut.add(100.883309198,0.043);
+            pitchLut.add(102.592238687,0.044);
+            pitchLut.add(116.89333451,0.043);
+            pitchLut.add(141.704101355,0.046);
+            pitchLut.add(200, 0.045);
+
 
 
             flywheelLut.createLUT();
@@ -133,6 +161,7 @@ public class Shooter {
         public double calculatePitch (double distance) {
             return pitchLut.get(distance) + pitchCorrection;
         }
+
     }
     public void increaseHeight() { ballistics.pitchCorrection += 0.02; }
     public void decreaseHeight() { ballistics.pitchCorrection -= 0.02; }
@@ -150,6 +179,7 @@ public class Shooter {
     public double getPitch () { return pitchServo.getPosition(); }
     public void zeroPitchServo() { pitchServo.setPosition(0.0); }
     public void maxPitchServo() {pitchServo.setPosition(1);}
+    public double getVoltage () {return hub.getInputVoltage(VoltageUnit.VOLTS);}
 
     public boolean isPitchServoThere(){
         if (pitchServo != null){

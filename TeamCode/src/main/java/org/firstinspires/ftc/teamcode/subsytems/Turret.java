@@ -31,7 +31,7 @@ public class Turret {
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
     // TODO: Tune these. Expect very different P values!
-    final PIDFController limelightPIDF = new PIDFController(0.01, 0.0, 0.001, 0.01);
+    final PIDFController limelightPIDF = new PIDFController(0.02, 0.012, 0.001, 0.0);
     final PIDFController odometryPIDF = new PIDFController(0.3, 0.0, 0.003, 0.0);
 
     double relativeTargetHeading;
@@ -122,6 +122,11 @@ public class Turret {
         rightTurretServo.setPower(0);
         leftTurretServo.setPower(0);
         limelight.pause();
+    }
+
+    public void adjustTurret (double power) {
+        rightTurretServo.setPower(power);
+        leftTurretServo.setPower(power);
     }
 
     /**
