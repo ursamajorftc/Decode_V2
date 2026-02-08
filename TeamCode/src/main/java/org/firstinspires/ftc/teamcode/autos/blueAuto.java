@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.subsytems.Turret;
 @Autonomous(name = "Blue Auto", group = "Competition Autos")
 @Configurable
 public class blueAuto extends OpMode {
-
+    boolean hasShoot = false;
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
     private Timer pathTimer, opmodeTimer;
@@ -105,11 +105,11 @@ public class blueAuto extends OpMode {
         // Refer to the Pedro Pathing Docs (Auto Example) for an example state machine
         switch (pathState) {
             case 1:
-//                shootThreeBalls(pathTimer);
-//                if (pathTimer.getElapsedTimeSeconds() > 8) {
+                shootThreeBalls(pathTimer);
+               if (hasShoot) {
                     follower.followPath(paths.Path1);
                     setPathState(pathState + 1);
-//                }
+               }
                 break;
             case 2:
                 if (!follower.isBusy()) {
@@ -154,7 +154,7 @@ public void shootThreeBalls(Timer pathTimer) {
     double time = pathTimer.getElapsedTimeSeconds();
 
     // 1. Keep the flywheel and turret active for the WHOLE sequence
-    if (time < 7.5) {
+    if (time < 10.5) {
         turret.aim();
         shooter.accelerateFlywheel();
     } else {
@@ -164,24 +164,32 @@ public void shootThreeBalls(Timer pathTimer) {
 
     // 2. Pulse the intake for the three individual shots
     // Shot 1
-    if (time > 4.0 && time < 4.2) {
+    if (time > 3.9 && time < 4.2) {
         intake.intake(intakePower);
     }
     // Gap 1
-    else if (time >= 4.2 && time < 5.15) {
+    else if (time >= 4.2 && time < 6.1) {
         intake.stop();
     }
     // Shot 2
-    else if (time >= 5.15 && time < 5.3) {
+    else if (time >= 6.1 && time < 6.5) {
         intake.intake(intakePower);
     }
     // Gap 2
-    else if (time >= 5.3) {
+    else if (time >= 6.5 && time <= 8.4) {
         intake.stop();
+
     }
-    // Shot 3
-//    else if (time >= 6.8 && time < 7.5) {
-//        intake.intake(intakePower);
-//    }
+//     Shot 3
+    else if (time >= 8.4 && time < 10.9) {
+        intake.intake(intakePower);
+    } if (time >= 12){
+        intake.idle();
+        shooter.idle();
+        turret.idle();
+        hasShoot = true;
+    } else {
+        hasShoot = false;
+    }
 }
 }

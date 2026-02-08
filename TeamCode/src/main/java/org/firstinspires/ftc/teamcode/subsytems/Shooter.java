@@ -81,11 +81,12 @@ public class Shooter {
 
         // Calculate power based on velocity error
         // TODO: Revert back to interpolated values once tuned
-        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), ballistics.calculateFlywheelSpeed(distanceFromTarget)) *  (13/ hub.getInputVoltage(VoltageUnit.VOLTS)); // 16.666 is max
+        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), ((0.00294117647059*(distanceFromTarget)) + 5.078529412)  *  (13/ hub.getInputVoltage(VoltageUnit.VOLTS))); // 16.666 is max
         flywheelMotorRight.setPower(power);
         flywheelMotorLeft.setPower(power);
 
-        pitchServo.setPosition(ballistics.calculatePitch(distanceFromTarget)); //0 highest, 1 lowest
+//        pitchServo.setPosition(ballistics.calculatePitch(distanceFromTarget)); //0 highest, 1 lowest
+        pitchServo.setPosition(0.043);
     }
 
     /**
@@ -120,23 +121,32 @@ public class Shooter {
             // TODO: Add real data points here
 
 
+            flywheelLut.add(1, 4.8);
             flywheelLut.add(60.2189384516,5);
             flywheelLut.add(71.2380348421,5);
             flywheelLut.add(91.8430034076,5);
             flywheelLut.add(100.883309198,5.1);
             flywheelLut.add(102.592238687,5.3);
             flywheelLut.add(116.89333451,5.3);
-            flywheelLut.add(141.704101355,5.5);
-            flywheelLut.add(200, 6);
+            flywheelLut.add(126.3, 5.45); //good
+            flywheelLut.add(141.704101355,5.34);
+            flywheelLut.add(143.3, 5.5); // good
+            flywheelLut.add(200, 5.6);
+            flywheelLut.add(300, 5.8);
 
+            pitchLut.add(1, 0.042);
             pitchLut.add(60.2189384516,0.045);
             pitchLut.add(71.2380348421,0.045);
             pitchLut.add(91.8430034076,0.04);
             pitchLut.add(100.883309198,0.043);
             pitchLut.add(102.592238687,0.044);
             pitchLut.add(116.89333451,0.043);
-            pitchLut.add(141.704101355,0.046);
+            pitchLut.add(126.3, 0.044); // good
+            pitchLut.add(127.1, 0.043);
+            pitchLut.add(141.704101355,0.044);
+            pitchLut.add(143.3, 0.044);//good
             pitchLut.add(200, 0.045);
+            pitchLut.add(300, 0.047);
 
 
 

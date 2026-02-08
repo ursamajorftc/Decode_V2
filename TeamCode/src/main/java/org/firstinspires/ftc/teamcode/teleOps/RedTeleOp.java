@@ -39,7 +39,7 @@ public class RedTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(91,25,Math.PI));
+        follower.setStartingPose(new Pose(90.52786885245901,25,Math.PI));
 
         for (int i = 0; i < 3; i++) {
             follower.update();
