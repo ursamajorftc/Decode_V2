@@ -66,8 +66,37 @@ public class Shooter {
     /**
      * Called every loop to calculate distance from target
      */
+    public void update () {
+        double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
+        double targetY = (isRed ? REDTARGET.getY() : BLUETARGET.getY());
 
+        double robotX = follower.getPose().getX();
+        double robotY = follower.getPose().getY();
 
+        double dx = targetX - robotX;
+        double dy = targetY - robotY;
+
+        // Standard Euclidean distance calculation
+        distanceFromTarget = Math.hypot(dx, dy);
+
+        if (distanceFromTarget != 0.0) {
+            Vector velocityVector = new Vector(new Pose(
+                    pinpoint.getVelX(DistanceUnit.INCH),
+                    pinpoint.getVelY(DistanceUnit.INCH)));
+            Vector vectorToTarget = new Vector(new Pose(
+                    dx / distanceFromTarget,
+                    dy / distanceFromTarget));
+
+            double velocityToTarget = velocityVector.dot(vectorToTarget);
+
+            // TODO: Tune the coefficient
+            double compensationCoefficient = 0.0;
+            compensatedDistance = distanceFromTarget + (compensationCoefficient * velocityToTarget);
+        } else {
+            compensatedDistance = distanceFromTarget;
+        }
+
+    }
 
     /**
      * Accelerates flywheel using Velocity PID based on distance from target
