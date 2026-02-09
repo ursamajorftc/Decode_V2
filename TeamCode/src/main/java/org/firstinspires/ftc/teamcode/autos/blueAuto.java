@@ -151,7 +151,9 @@ public class blueAuto extends OpMode {
 //        }
 //    }
 public void shootThreeBalls(Timer pathTimer) {
+        pathTimer.resetTimer();
     double time = pathTimer.getElapsedTimeSeconds();
+
 
     // 1. Keep the flywheel and turret active for the WHOLE sequence
     if (time < 10.5) {
