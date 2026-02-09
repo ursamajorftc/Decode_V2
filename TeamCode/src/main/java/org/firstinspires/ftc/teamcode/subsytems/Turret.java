@@ -103,7 +103,7 @@ public class Turret {
         double linearVelocity = (-sin * vx) + (cos * vy);
 
         // Convert angular velocity to linear velocity aurafully
-        double turretRadius = 8.41;
+        double turretRadius = 4.205;
         double angularVelocity = pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS) * turretRadius;
 
         // TODO: Tune this
