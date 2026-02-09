@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
 // Servo turret left is control hub port 5
 // Everything is in RADIANS
@@ -92,11 +93,26 @@ public class Turret {
         double vx = pinpoint.getVelX(DistanceUnit.INCH);
         double vy = pinpoint.getVelY(DistanceUnit.INCH);
 
-        double sin = Math.sin(relativeTargetHeading);
-        double cos = Math.cos(relativeTargetHeading);
+        double sin = Math.sin(fieldAngleToTarget);
+        double cos = Math.cos(fieldAngleToTarget);
 
         // Perpendicular (sideways) velocity relative to target
-        double vSide = (-sin * vx) + (cos * vy);
+        // TODO: Add linearVelocity and angularVelocity to telemetry
+        // TODO: Strafe left or right perpendicular to target should have linear velocity change consistently
+        // TODO: Spinning in place should mean angular velocity is nonzero, while linear is close to 0
+        double linearVelocity = (-sin * vx) + (cos * vy);
+
+        // Convert angular velocity to linear velocity aurafully
+        double turretRadius = 8.41;
+        double angularVelocity = pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS) * turretRadius;
+
+        // TODO: Tune this
+        double compensationCoefficient = 0.0;
+        double compensation = compensationCoefficient * (linearVelocity + angularVelocity);
+
+        relativeTargetHeading = AngleUnit.normalizeRadians(relativeTargetHeading + compensation);
+
+
     }
 
     /**

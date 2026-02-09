@@ -103,16 +103,16 @@ public class Shooter {
      */
     public void accelerateFlywheel () {
         // Retrieves Targets from Ballistic Class
-//        double targetVel = ballistics.calculateFlywheelSpeed(distanceFromTarget);
-//        double targetPitch = ballistics.calculatePitch(distanceFromTarget);
+//        double targetVel = ballistics.calculateFlywheelSpeed(compensatedDistance);
+//        double targetPitch = ballistics.calculatePitch(compensatedDistance);
 
         // Calculate power based on velocity error
         // TODO: Revert back to interpolated values once tuned
-        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), ((0.00294117647059*(distanceFromTarget)) + 5.078529412)  *  (13/ hub.getInputVoltage(VoltageUnit.VOLTS))); // 16.666 is max
+        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), ((0.00294117647059*(compensatedDistance)) + 5.078529412)  *  (13/ hub.getInputVoltage(VoltageUnit.VOLTS))); // 16.666 is max
         flywheelMotorRight.setPower(power);
         flywheelMotorLeft.setPower(power);
 
-//        pitchServo.setPosition(ballistics.calculatePitch(distanceFromTarget)); //0 highest, 1 lowest
+//        pitchServo.setPosition(ballistics.calculatePitch(compensatedDistance)); //0 highest, 1 lowest
         pitchServo.setPosition(0.043);
     }
 
