@@ -105,6 +105,7 @@ public class blueAuto extends OpMode {
         // Refer to the Pedro Pathing Docs (Auto Example) for an example state machine
         switch (pathState) {
             case 1:
+                pathTimer.resetTimer();
                 shootThreeBalls(pathTimer);
                if (hasShoot) {
                     follower.followPath(paths.Path1);
@@ -151,7 +152,7 @@ public class blueAuto extends OpMode {
 //        }
 //    }
 public void shootThreeBalls(Timer pathTimer) {
-        pathTimer.resetTimer();
+    pathTimer.resetTimer();
     double time = pathTimer.getElapsedTimeSeconds();
 
 
