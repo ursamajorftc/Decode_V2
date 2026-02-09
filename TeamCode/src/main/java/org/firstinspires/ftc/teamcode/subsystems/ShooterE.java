@@ -1,18 +1,10 @@
-package org.firstinspires.ftc.teamcode.subsytems;
+package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.arcrobotics.ftclib.controller.PIDFController;
-import com.arcrobotics.ftclib.util.InterpLUT;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-
-import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------

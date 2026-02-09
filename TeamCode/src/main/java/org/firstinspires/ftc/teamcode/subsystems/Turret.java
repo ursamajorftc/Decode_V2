@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsytems;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
