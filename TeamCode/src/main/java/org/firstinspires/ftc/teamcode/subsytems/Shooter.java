@@ -40,12 +40,12 @@ public class Shooter {
     public Shooter (HardwareMap hardwareMap, Follower follower, boolean isRed) {
         flywheelMotorRight = hardwareMap.get(DcMotorEx.class, "rightFlywheelMotor");
         flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        flywheelMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        flywheelMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         flywheelMotorLeft = hardwareMap.get(DcMotorEx.class, "leftFlywheelMotor");
         flywheelMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        flywheelMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//        flywheelMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
+        flywheelMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
         this.follower = follower;
