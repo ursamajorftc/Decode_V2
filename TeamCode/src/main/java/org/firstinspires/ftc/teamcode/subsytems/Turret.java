@@ -4,12 +4,15 @@ import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 // Servo turret left is control hub port 5
 // Everything is in RADIANS
 @Configurable
@@ -19,6 +22,7 @@ public class Turret {
     DcMotorEx intakeMotor;
     Follower follower;
     Limelight3A limelight;
+    GoBildaPinpointDriver pinpoint;
 
     double turretPosition;
 
@@ -59,6 +63,8 @@ public class Turret {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(isRed ? 0 : 1);
         limelight.start();
+
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
     }
 
     /**
@@ -82,6 +88,15 @@ public class Turret {
         // Convert to robot-centric angle (where the turret needs to point)
         // Angle Wrapping: ensures we calculate the shortest distance (-PI to PI)
         relativeTargetHeading = AngleUnit.normalizeRadians(fieldAngleToTarget - robotHeading);
+
+        double vx = pinpoint.getVelX(DistanceUnit.INCH);
+        double vy = pinpoint.getVelY(DistanceUnit.INCH);
+
+        double sin = Math.sin(relativeTargetHeading);
+        double cos = Math.cos(relativeTargetHeading);
+
+        // Perpendicular (sideways) velocity relative to target
+        double vSide = (-sin * vx) + (cos * vy);
     }
 
     /**

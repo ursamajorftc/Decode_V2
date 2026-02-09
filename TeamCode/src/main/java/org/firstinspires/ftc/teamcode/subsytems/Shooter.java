@@ -4,6 +4,8 @@ import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -11,15 +13,18 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 
 public class Shooter {
     double distanceFromTarget;
+    double compensatedDistance;
     DcMotorEx flywheelMotorRight;
     DcMotorEx flywheelMotorLeft;
     Servo pitchServo;
     Follower follower;
     Ballistics ballistics;
+    GoBildaPinpointDriver pinpoint;
 
     LynxModule hub;
 
@@ -55,21 +60,14 @@ public class Shooter {
         this.ballistics = new Ballistics();
 
         hub = hardwareMap.getAll(LynxModule.class).get(0);
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
     }
 
     /**
      * Called every loop to calculate distance from target
      */
-    public void update () {
-        double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
-        double targetY = (isRed ? REDTARGET.getY() : BLUETARGET.getY());
 
-        double robotX = follower.getPose().getX();
-        double robotY = follower.getPose().getY();
 
-        // Standard Euclidean distance calculation
-        distanceFromTarget = Math.hypot(targetX-robotX, targetY-robotY);
-    }
 
     /**
      * Accelerates flywheel using Velocity PID based on distance from target
