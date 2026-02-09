@@ -4,6 +4,8 @@ import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -11,15 +13,18 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 
 public class Shooter {
     double distanceFromTarget;
+    double compensatedDistance;
     DcMotorEx flywheelMotorRight;
     DcMotorEx flywheelMotorLeft;
     Servo pitchServo;
     Follower follower;
     Ballistics ballistics;
+    GoBildaPinpointDriver pinpoint;
 
     LynxModule hub;
 
@@ -55,6 +60,7 @@ public class Shooter {
         this.ballistics = new Ballistics();
 
         hub = hardwareMap.getAll(LynxModule.class).get(0);
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
     }
 
     /**
@@ -67,8 +73,29 @@ public class Shooter {
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
 
+        double dx = targetX - robotX;
+        double dy = targetY - robotY;
+
         // Standard Euclidean distance calculation
-        distanceFromTarget = Math.hypot(targetX-robotX, targetY-robotY);
+        distanceFromTarget = Math.hypot(dx, dy);
+
+        if (distanceFromTarget != 0.0) {
+            Vector velocityVector = new Vector(new Pose(
+                    pinpoint.getVelX(DistanceUnit.INCH),
+                    pinpoint.getVelY(DistanceUnit.INCH)));
+            Vector vectorToTarget = new Vector(new Pose(
+                    dx / distanceFromTarget,
+                    dy / distanceFromTarget));
+
+            double velocityToTarget = velocityVector.dot(vectorToTarget);
+
+            // TODO: Tune the coefficient
+            double compensationCoefficient = 0.0;
+            compensatedDistance = distanceFromTarget + (compensationCoefficient * velocityToTarget);
+        } else {
+            compensatedDistance = distanceFromTarget;
+        }
+
     }
 
     /**
@@ -76,16 +103,16 @@ public class Shooter {
      */
     public void accelerateFlywheel () {
         // Retrieves Targets from Ballistic Class
-//        double targetVel = ballistics.calculateFlywheelSpeed(distanceFromTarget);
-//        double targetPitch = ballistics.calculatePitch(distanceFromTarget);
+//        double targetVel = ballistics.calculateFlywheelSpeed(compensatedDistance);
+//        double targetPitch = ballistics.calculatePitch(compensatedDistance);
 
         // Calculate power based on velocity error
         // TODO: Revert back to interpolated values once tuned
-        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), ((0.00294117647059*(distanceFromTarget)) + 5.078529412)  *  (13/ hub.getInputVoltage(VoltageUnit.VOLTS))); // 16.666 is max
+        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), ((0.00294117647059*(compensatedDistance)) + 5.078529412)  *  (13/ hub.getInputVoltage(VoltageUnit.VOLTS))); // 16.666 is max
         flywheelMotorRight.setPower(power);
         flywheelMotorLeft.setPower(power);
 
-//        pitchServo.setPosition(ballistics.calculatePitch(distanceFromTarget)); //0 highest, 1 lowest
+//        pitchServo.setPosition(ballistics.calculatePitch(compensatedDistance)); //0 highest, 1 lowest
         pitchServo.setPosition(0.043);
     }
 

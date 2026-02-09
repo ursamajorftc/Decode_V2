@@ -4,12 +4,16 @@ import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
+
 // Servo turret left is control hub port 5
 // Everything is in RADIANS
 @Configurable
@@ -19,6 +23,7 @@ public class Turret {
     DcMotorEx intakeMotor;
     Follower follower;
     Limelight3A limelight;
+    GoBildaPinpointDriver pinpoint;
 
     double turretPosition;
 
@@ -59,6 +64,8 @@ public class Turret {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(isRed ? 0 : 1);
         limelight.start();
+
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
     }
 
     /**
@@ -82,6 +89,30 @@ public class Turret {
         // Convert to robot-centric angle (where the turret needs to point)
         // Angle Wrapping: ensures we calculate the shortest distance (-PI to PI)
         relativeTargetHeading = AngleUnit.normalizeRadians(fieldAngleToTarget - robotHeading);
+
+        double vx = pinpoint.getVelX(DistanceUnit.INCH);
+        double vy = pinpoint.getVelY(DistanceUnit.INCH);
+
+        double sin = Math.sin(fieldAngleToTarget);
+        double cos = Math.cos(fieldAngleToTarget);
+
+        // Perpendicular (sideways) velocity relative to target
+        // TODO: Add linearVelocity and angularVelocity to telemetry
+        // TODO: Strafe left or right perpendicular to target should have linear velocity change consistently
+        // TODO: Spinning in place should mean angular velocity is nonzero, while linear is close to 0
+        double linearVelocity = (-sin * vx) + (cos * vy);
+
+        // Convert angular velocity to linear velocity aurafully
+        double turretRadius = 4.205;
+        double angularVelocity = pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS) * turretRadius;
+
+        // TODO: Tune this
+        double compensationCoefficient = 0.0;
+        double compensation = compensationCoefficient * (linearVelocity + angularVelocity);
+
+        relativeTargetHeading = AngleUnit.normalizeRadians(relativeTargetHeading + compensation);
+
+
     }
 
     /**

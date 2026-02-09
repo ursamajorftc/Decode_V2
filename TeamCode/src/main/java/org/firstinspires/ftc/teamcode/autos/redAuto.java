@@ -268,6 +268,7 @@ public class redAuto extends OpMode {
         } else {
             intakePower = 1;
         }
+        //System.out.println("restting timer");
         pathTimer.resetTimer();
         opmodeTimer.resetTimer();
     }
