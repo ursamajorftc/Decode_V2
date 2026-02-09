@@ -40,7 +40,7 @@ public class ShooterE {
     //Variables
     double highRPM = 4000;      // Desired flywheel speed
     double lowRPM = 900;
-    double targetRPM = 0
+    double targetRPM = 0;
     double currentRPM;        // Measured speed
     double errorRPM;
     double PIDF_Voltage;
@@ -50,7 +50,7 @@ public class ShooterE {
 
 
     // Connects each hardware variable to a port on the Control hub
-    public shooterHardware (HardwareMap hardwareMap, Follower follower, boolean isRed) {
+    public ShooterE (HardwareMap hardwareMap, Follower follower, boolean isRed) {
         flywheelMotorRight = hardwareMap.get(DcMotorEx.class, "rightFlywheelMotor");
         flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheelMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
