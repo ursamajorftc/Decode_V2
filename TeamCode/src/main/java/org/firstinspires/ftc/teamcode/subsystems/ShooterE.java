@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -26,15 +25,15 @@ public class ShooterE {
     private static final double TICKS_PER_REV = 8192.0;
     private static final double SECONDS_PER_MINUTE = 60.0;
     //PIDF constants
-    private static double F = 0;  // Volts per RPM error
-    private static double P = 0;  // Volts per RPM (feedforward)
+    public double F = 0;  // Volts per RPM error
+    public double P = 0;  // Volts per RPM (feedforward)
 
     //Variables
-    double highRPM = 4000;      // Desired flywheel speed
-    double lowRPM = 900;
-    double targetRPM = 0;
-    double currentRPM;        // Measured speed
-    double errorRPM;
+    public double highRPM = 4000;      // Desired flywheel speed
+    public double lowRPM = 900;
+    public double targetRPM = highRPM;
+    public double currentRPM;        // Measured speed
+    public double errorRPM;
     double PIDF_Voltage;
     double motorPower;
 
@@ -42,7 +41,7 @@ public class ShooterE {
 
 
     // Connects each hardware variable to a port on the Control hub
-    public ShooterE (HardwareMap hardwareMap, Follower follower, boolean isRed) {
+    public ShooterE (HardwareMap hardwareMap) {
         flywheelMotorRight = hardwareMap.get(DcMotorEx.class, "rightFlywheelMotor");
         flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheelMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -66,7 +65,7 @@ public class ShooterE {
         PIDF_Voltage = (P * errorRPM) + (F * targetRPM);
 
 
-        // Voltage compensation and clamp to -1..1
+        // Voltage compensation
         motorPower = PIDF_Voltage / batteryVoltage.getVoltage();
 
 
@@ -78,7 +77,7 @@ public class ShooterE {
 
 
     // Gets the Current Flywheel RPM
-    double getFlywheelRPM() {
+    public double getFlywheelRPM() {
         double ticksPerSecond = encoder.getVelocity();
         return (ticksPerSecond / TICKS_PER_REV) * SECONDS_PER_MINUTE;
     }
