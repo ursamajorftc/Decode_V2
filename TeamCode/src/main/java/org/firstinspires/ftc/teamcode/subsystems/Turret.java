@@ -26,6 +26,7 @@ public class Turret {
     GoBildaPinpointDriver pinpoint;
 
     double turretPosition;
+    double compensation;
 
     double isLLgetting;
 
@@ -108,9 +109,7 @@ public class Turret {
 
         // TODO: Tune this
         double compensationCoefficient = 0.0;
-        double compensation = compensationCoefficient * (linearVelocity + angularVelocity);
-
-        relativeTargetHeading = AngleUnit.normalizeRadians(relativeTargetHeading + compensation);
+        compensation = compensationCoefficient * (linearVelocity + angularVelocity);
 
 
     }
@@ -125,16 +124,15 @@ public class Turret {
 
         if (llResult != null && llResult.isValid()) {
             // Limelight tx is in degrees. Target is 0.
-            double power = limelightPIDF.calculate(llResult.getTx(), 0);
-            //power = normalizePower(power);
-//            power = 0;
+            double power = limelightPIDF.calculate(llResult.getTx(), 0 + compensation);
+            // power = normalizePower(power);
             isLLgetting = power;
             rightTurretServo.setPower(power);
             leftTurretServo.setPower(power);
         } else {
             // Fallback to Odometry
             // We want turretPosition to match relativeTargetHeading
-//            double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading);
+//            double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading + compensation);
 //            power = normalizePower(power);
 
             rightTurretServo.setPower(0);
