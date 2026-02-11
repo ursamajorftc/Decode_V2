@@ -9,10 +9,8 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 
 public class Shooter {
@@ -76,13 +74,23 @@ public class Shooter {
         // Standard Euclidean distance calculation
         distanceFromTarget = Math.hypot(dx, dy);
 
-        if (distanceFromTarget != 0.0) {
-            Vector velocityVector = follower.getVelocity();
+        if (distanceFromTarget >= 0.0) {
+            Vector robotVelocityVector = follower.getVelocity();
+            double vx = robotVelocityVector.getXComponent(); // Forward velocity
+            double vy = robotVelocityVector.getYComponent(); // Strafe velocity
+
+            // 2. Rotate to Field-Centric Velocity
+            // Rotation matrix: x' = x cos θ - y sin θ, y' = x sin θ + y cos θ
+            double robotHeading = follower.getHeading();
+            double vFieldX = vx * Math.cos(robotHeading) - vy * Math.sin(robotHeading);
+            double vFieldY = vx * Math.sin(robotHeading) + vy * Math.cos(robotHeading);
+            Vector fieldVelocityVector = new Vector(Math.hypot(vFieldX, vFieldY), Math.atan2(vFieldY, vFieldX));
+
             Vector vectorToTarget = new Vector(new Pose(
                     dx / distanceFromTarget,
                     dy / distanceFromTarget));
 
-            double velocityToTarget = velocityVector.dot(vectorToTarget);
+            double velocityToTarget = fieldVelocityVector.dot(vectorToTarget);
 
             // TODO: Tune the coefficient
             double compensationCoefficient = 0.0;

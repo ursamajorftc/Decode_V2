@@ -113,7 +113,7 @@ public class Turret {
 
         // TODO: Tune this
         double compensationCoefficient = 0.0;
-        compensation = compensationCoefficient * (linearVelocity - angularVelocity);
+        compensation = compensationCoefficient * (linearVelocity + angularVelocity);
 
 
     }
@@ -128,7 +128,7 @@ public class Turret {
 
         if (llResult != null && llResult.isValid()) {
             // Limelight tx is in degrees. Target is 0.
-            double power = limelightPIDF.calculate(llResult.getTx(), 0 + compensation);
+            double power = limelightPIDF.calculate(llResult.getTx(), 0 - compensation);
             // power = normalizePower(power);
             isLLgetting = power;
             rightTurretServo.setPower(power);
@@ -136,11 +136,12 @@ public class Turret {
         } else {
             // Fallback to Odometry
             // We want turretPosition to match relativeTargetHeading
-//            double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading + compensation);
+//            double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading - compensation);
 //            power = normalizePower(power);
+            double power = 0;
 
-            rightTurretServo.setPower(0);
-            leftTurretServo.setPower(0);
+            rightTurretServo.setPower(power);
+            leftTurretServo.setPower(power);
         }
     }
 
