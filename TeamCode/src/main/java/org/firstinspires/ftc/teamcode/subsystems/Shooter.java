@@ -5,7 +5,6 @@ import com.arcrobotics.ftclib.util.InterpLUT;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -23,7 +22,6 @@ public class Shooter {
     Servo pitchServo;
     Follower follower;
     Ballistics ballistics;
-    GoBildaPinpointDriver pinpoint;
 
     LynxModule hub;
 
@@ -59,7 +57,6 @@ public class Shooter {
         this.ballistics = new Ballistics();
 
         hub = hardwareMap.getAll(LynxModule.class).get(0);
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
     }
 
     /**
@@ -79,9 +76,7 @@ public class Shooter {
         distanceFromTarget = Math.hypot(dx, dy);
 
         if (distanceFromTarget != 0.0) {
-            Vector velocityVector = new Vector(new Pose(
-                    pinpoint.getVelX(DistanceUnit.INCH),
-                    pinpoint.getVelY(DistanceUnit.INCH)));
+            Vector velocityVector = follower.getVelocity();
             Vector vectorToTarget = new Vector(new Pose(
                     dx / distanceFromTarget,
                     dy / distanceFromTarget));
