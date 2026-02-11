@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 //-----------------------------------------------------------------------------------------
@@ -34,9 +36,9 @@ public class ShooterE {
     public double targetRPM = highRPM;
     public double currentRPM;        // Measured speed
     public double errorRPM;
-    double PIDF_Voltage;
-    double motorPower;
 
+    public double motorPower;
+    public PIDFController PIDF_MotorInput  = new PIDFController(P, 0.0, 0.0, F);
 
 
 
@@ -50,8 +52,7 @@ public class ShooterE {
         flywheelMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheelMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        //get name for encoder          encoder = hardwareMap.get(DcMotorEx.class, "")
-        // encoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
         batteryVoltage = hardwareMap.voltageSensor.iterator().next();
     }
 
@@ -60,13 +61,12 @@ public class ShooterE {
         currentRPM = getFlywheelRPM();
         errorRPM = targetRPM - currentRPM;
 
-        // Voltage from PDIF Calculation
+        PIDF_MotorInput.setP(P);
+        PIDF_MotorInput.setF(F);
 
-        PIDF_Voltage = (P * errorRPM) + (F * targetRPM);
 
-
-        // Voltage compensation
-        motorPower = PIDF_Voltage / batteryVoltage.getVoltage();
+        // Used to calculate motor power feeding in CurrentRPM and Target RPM, then compensating the voltage for each value
+        motorPower = PIDF_MotorInput.calculate(currentRPM, targetRPM) * (12/ batteryVoltage.getVoltage());
 
 
         // Apply to motors
@@ -78,17 +78,9 @@ public class ShooterE {
 
     // Gets the Current Flywheel RPM
     public double getFlywheelRPM() {
-        double ticksPerSecond = encoder.getVelocity();
+        double ticksPerSecond = flywheelMotorRight.getVelocity();
         return (ticksPerSecond / TICKS_PER_REV) * SECONDS_PER_MINUTE;
     }
-
-
-
-
-
-
-
-
 
 
 }
