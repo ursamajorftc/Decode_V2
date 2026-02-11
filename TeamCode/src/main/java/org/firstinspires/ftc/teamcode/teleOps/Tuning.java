@@ -37,8 +37,6 @@ public class Tuning extends OpMode {
     @Override
     public void loop() {
 
-
-
         // Change the target velocity with Y button
         if (gamepad1.yWasPressed()){
             if(shooterE.targetRPM == shooterE.highRPM){
@@ -53,6 +51,8 @@ public class Tuning extends OpMode {
         if (gamepad1.bWasPressed()){
             stepIndex = (stepIndex + 1) % stepSizes.length;
         }
+
+
         //Increase or decrease F or P value for PIDF tuning
         if(gamepad1.dpadLeftWasPressed()){
             shooterE.F -= stepSizes[stepIndex];
@@ -67,6 +67,8 @@ public class Tuning extends OpMode {
             shooterE.P += stepSizes[stepIndex];
         }
 
+
+
         shooterE.updateShooter();
 
         telemetry.addData("Target RPM", shooterE.targetRPM);
@@ -75,6 +77,7 @@ public class Tuning extends OpMode {
         telemetry.addData("F Value (dPad Left- and Right+)", shooterE.F);
         telemetry.addData("P Value (dPad Up+ and Down-)", shooterE.P);
         telemetry.addData("Step Size", stepSizes[stepIndex]);
+        telemetry.addData("Motor Input", shooterE.motorPower)
         telemetry.update();
 
     }
