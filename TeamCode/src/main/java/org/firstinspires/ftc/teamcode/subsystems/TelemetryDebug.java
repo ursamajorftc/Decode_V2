@@ -23,6 +23,38 @@ public class TelemetryDebug {
         }
     }
 
+    public void createWatcher(String name, double value){
+        Double valueObject = value;
+        boolean exists = false;
+        if (!watchers.isEmpty())
+            for (watcher w : watchers){
+                if (w.getName().equals(name)){
+                    w.value = valueObject;
+                    exists = true;
+                    break;
+                }
+            }
+        if(!exists){
+            watchers.add(new watcher(name, valueObject));
+        }
+    }
+
+    public void createWatcher(String name, int value){
+        Integer valueObject = value;
+        boolean exists = false;
+        if (!watchers.isEmpty())
+            for (watcher w : watchers){
+                if (w.getName().equals(name)){
+                    w.value = valueObject;
+                    exists = true;
+                    break;
+                }
+            }
+        if(!exists){
+            watchers.add(new watcher(name, valueObject));
+        }
+    }
+
     public static class watcher<T> {
         private String name;
         private T value;
