@@ -239,7 +239,7 @@ public class redAuto extends OpMode {
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
-        telemetryDebug = new TelemetryDebug();
+        telemetryDebug = new TelemetryDebug(telemetry);
         turret = new Turret(hardwareMap, follower, true);
         shooter = new Shooter(hardwareMap, follower, true, telemetryDebug);
         intake = new Intake(hardwareMap);

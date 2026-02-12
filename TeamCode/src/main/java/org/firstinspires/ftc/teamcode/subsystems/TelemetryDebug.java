@@ -7,14 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TelemetryDebug {
-    public ArrayList<watcher> watchers;
-    public Telemetry telemetry;
+    public static ArrayList<watcher> watchers;
+    public static Telemetry telemetry;
 
     public TelemetryDebug () {
         watchers = new ArrayList<>();
     }
     public TelemetryDebug (Telemetry telemetry) {
-        this.telemetry = telemetry;
+        watchers = new ArrayList<>();
+        TelemetryDebug.telemetry = telemetry;
     }
 
     public void createWatcher(String name, Object value){
@@ -77,6 +78,16 @@ public class TelemetryDebug {
             }
         if(!exists){
             watchers.add(new watcher(name, valueObject));
+        }
+    }
+
+    public void logData () {
+        if (telemetry != null) {
+            for (watcher w : watchers) {
+                telemetry.addData(w.getName(), w.getValue());
+            }
+        } else {
+            return;
         }
     }
 

@@ -46,7 +46,7 @@ public class BlueTeleOp extends OpMode {
         for (int i = 0; i < 3; i++) {
             follower.update();
         }
-        telemetryDebug = new TelemetryDebug();
+        telemetryDebug = new TelemetryDebug(telemetry);
         intake = new Intake(hardwareMap);
         turret = new Turret(hardwareMap, follower, false);
         shooter = new Shooter(hardwareMap, follower, false, telemetryDebug);
@@ -143,9 +143,10 @@ public class BlueTeleOp extends OpMode {
         telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());
         telemetry.addData("Pitch Servo Position", shooter.getPitch());
         telemetry.addData("Voltage", shooter.getVoltage());
-        for (TelemetryDebug.watcher w : telemetryDebug.watchers){
-            telemetry.addData(w.getName(), w.getValue());
-        }
+//        for (TelemetryDebug.watcher w : telemetryDebug.watchers){
+//            telemetry.addData(w.getName(), w.getValue());
+//        }
+        telemetryDebug.logData();
     }
 
     @Override
