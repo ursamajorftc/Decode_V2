@@ -1,12 +1,21 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class TelemetryDebug {
-    public ArrayList<watcher> watchers = new ArrayList<>();
+    public ArrayList<watcher> watchers;
+    public Telemetry telemetry;
 
+    public TelemetryDebug () {
+        watchers = new ArrayList<>();
+    }
+    public TelemetryDebug (Telemetry telemetry) {
+        this.telemetry = telemetry;
+    }
 
     public void createWatcher(String name, Object value){
         boolean exists = false;
