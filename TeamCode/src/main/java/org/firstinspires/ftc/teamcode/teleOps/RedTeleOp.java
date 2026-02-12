@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.subsystems.TelemetryDebug;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class RedTeleOp extends OpMode {
     private Follower follower;
     private GamepadEx controller2;
     private TelemetryManager telemetryManager;
+    private TelemetryDebug telemetryDebug;
 
     private boolean previousTriggerState = false;
 
@@ -44,10 +46,10 @@ public class RedTeleOp extends OpMode {
         for (int i = 0; i < 3; i++) {
             follower.update();
         }
-
+        telemetryDebug = new TelemetryDebug();
         intake = new Intake(hardwareMap);
         turret = new Turret(hardwareMap, follower, true);
-        shooter = new Shooter(hardwareMap, follower, true);
+        shooter = new Shooter(hardwareMap, follower, true, telemetryDebug);
 
         controller2 = new GamepadEx(gamepad2);
 

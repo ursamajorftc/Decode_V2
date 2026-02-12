@@ -204,6 +204,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.subsystems.TelemetryDebug;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 @Autonomous(name = "Red Auto", group = "Competition Autos")
@@ -219,6 +220,7 @@ public class redAuto extends OpMode {
     private Shooter shooter;
     private Intake intake;
     private LynxModule hub;
+    private TelemetryDebug telemetryDebug;
     private double intakePower = 1;
 
     @Override
@@ -237,8 +239,9 @@ public class redAuto extends OpMode {
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
+        telemetryDebug = new TelemetryDebug();
         turret = new Turret(hardwareMap, follower, true);
-        shooter = new Shooter(hardwareMap, follower, true);
+        shooter = new Shooter(hardwareMap, follower, true, telemetryDebug);
         intake = new Intake(hardwareMap);
 
         hub = hardwareMap.getAll(LynxModule.class).get(0);

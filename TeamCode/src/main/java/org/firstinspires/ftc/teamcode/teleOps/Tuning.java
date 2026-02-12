@@ -19,8 +19,6 @@ public class Tuning extends OpMode {
     private GamepadEx controller2;
     private ShooterE shooterE;
 
-
-
     private TelemetryManager telemetryManager;
 
     double[] stepSizes = {1.0, 0.1, 0.01, 0.001};
@@ -30,6 +28,7 @@ public class Tuning extends OpMode {
     @Override
     public void init() {
         shooterE = new ShooterE(hardwareMap);
+
 
     }
 
@@ -69,6 +68,7 @@ public class Tuning extends OpMode {
 
 
 
+
         shooterE.updateShooter();
 
         telemetry.addData("Target RPM", shooterE.targetRPM);
@@ -77,7 +77,7 @@ public class Tuning extends OpMode {
         telemetry.addData("F Value (dPad Left- and Right+)", shooterE.F);
         telemetry.addData("P Value (dPad Up+ and Down-)", shooterE.P);
         telemetry.addData("Step Size", stepSizes[stepIndex]);
-        telemetry.addData("Motor Input", shooterE.motorPower)
+        telemetry.addData("Motor Input", shooterE.motorPower);
         telemetry.update();
 
     }

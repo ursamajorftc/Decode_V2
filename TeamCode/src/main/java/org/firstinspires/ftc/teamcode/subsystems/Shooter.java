@@ -21,6 +21,7 @@ public class Shooter {
     Servo pitchServo;
     Follower follower;
     Ballistics ballistics;
+    TelemetryDebug telemetryDebug;
 
     LynxModule hub;
 
@@ -28,7 +29,7 @@ public class Shooter {
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
     // TODO: Tune this!
-    final PIDFController flywheelPIDF  = new PIDFController(0.07, 0.0, 0.0, 0.05);
+    final PIDFController flywheelPIDF  = new PIDFController(0.5, 0.0, 0.0, 1);
 
     boolean isRed;
 
@@ -38,7 +39,7 @@ public class Shooter {
      * @param follower Used to determine distance to target using odometry
      * @param isRed Set per alliance color
      */
-    public Shooter (HardwareMap hardwareMap, Follower follower, boolean isRed) {
+    public Shooter (HardwareMap hardwareMap, Follower follower, boolean isRed, TelemetryDebug debug) {
         flywheelMotorRight = hardwareMap.get(DcMotorEx.class, "rightFlywheelMotor");
         flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheelMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -54,6 +55,7 @@ public class Shooter {
 
         // Initialize Ballistics (fills the LUTs)
         this.ballistics = new Ballistics();
+        this.telemetryDebug = debug;
 
         hub = hardwareMap.getAll(LynxModule.class).get(0);
     }
@@ -114,9 +116,10 @@ public class Shooter {
         double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), ((0.00294117647059*(compensatedDistance)) + 5.078529412)  *  (13/ hub.getInputVoltage(VoltageUnit.VOLTS))); // 16.666 is max
         flywheelMotorRight.setPower(power);
         flywheelMotorLeft.setPower(power);
-
+        telemetryDebug.createWatcher("Flywheel Speed: ", power);
 //        pitchServo.setPosition(ballistics.calculatePitch(compensatedDistance)); //0 highest, 1 lowest
         pitchServo.setPosition(0.043);
+
     }
 
     /**

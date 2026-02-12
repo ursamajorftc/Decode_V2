@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.subsystems.TelemetryDebug;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class BlueTeleOp extends OpMode {
     private Follower follower;
     private GamepadEx controller2;
     private TelemetryManager telemetryManager;
+    private TelemetryDebug telemetryDebug;
 
     private boolean previousTriggerState = false;
 
@@ -44,14 +46,16 @@ public class BlueTeleOp extends OpMode {
         for (int i = 0; i < 3; i++) {
             follower.update();
         }
-
+        telemetryDebug = new TelemetryDebug();
         intake = new Intake(hardwareMap);
         turret = new Turret(hardwareMap, follower, false);
-        shooter = new Shooter(hardwareMap, follower, false);
+        shooter = new Shooter(hardwareMap, follower, false, telemetryDebug);
+
 
         controller2 = new GamepadEx(gamepad2);
 
         telemetryManager = PanelsTelemetry.INSTANCE.getTelemetry();
+
 
     }
 
@@ -130,11 +134,18 @@ public class BlueTeleOp extends OpMode {
             shooter.resetLuts();
         }
 
+//        if(gamepad1.y){
+//            telemetryDebug.createWatcher("Test Watcher: ", "Nirav is a poopy idiot");
+//        }
+
         telemetry.addData("Turret Position", turret.getTurretPosition());
         telemetry.addData("Distance From Target", shooter.getDistanceFromTarget());
         telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());
         telemetry.addData("Pitch Servo Position", shooter.getPitch());
         telemetry.addData("Voltage", shooter.getVoltage());
+        for (TelemetryDebug.watcher w : telemetryDebug.watchers){
+            telemetry.addData(w.getName(), w.getValue());
+        }
     }
 
     @Override
