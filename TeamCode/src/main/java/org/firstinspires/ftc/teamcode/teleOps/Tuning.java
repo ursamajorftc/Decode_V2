@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterE;
 
-@TeleOp (name = "Tuning", group = "Tuning TeleOps")
+@TeleOp (name = "Tuning Velocity PIDF", group = "Competition TeleOps")
 public class Tuning extends OpMode {
     private GamepadEx controller2;
     private ShooterE shooterE;
