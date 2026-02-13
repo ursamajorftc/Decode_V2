@@ -82,10 +82,10 @@ public class ShooterE {
     // Gets the Current Flywheel RPM
     public double getFlywheelRPM() {
 
-            long currentTime = System.currentTimeMillis();
+            long currentTime = System.nanoTime();
             int currentPosition = flywheelMotorRight.getCurrentPosition();
 
-            double deltaTime = (currentTime - lastTime) / 1000.0; // Convert to seconds
+            double deltaTime = (currentTime - lastTime) / 1e9; // Convert to seconds
             if (deltaTime == 0) return currentRPM; // Prevent divide by zero
 
             double deltaPos = currentPosition - lastPosition;
