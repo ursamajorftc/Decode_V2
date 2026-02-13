@@ -36,6 +36,9 @@ public class ShooterE {
     public double targetRPM = highRPM;
     public double currentRPM;        // Measured speed
     public double errorRPM;
+    private long lastTime = 0;
+    private int lastPosition = 0;
+
 
     public double motorPower;
     public PIDFController PIDF_MotorInput  = new PIDFController(P, 0.0, 0.0, F);
@@ -78,8 +81,21 @@ public class ShooterE {
 
     // Gets the Current Flywheel RPM
     public double getFlywheelRPM() {
-        double ticksPerSecond = flywheelMotorRight.getVelocity();
-        return (ticksPerSecond / TICKS_PER_REV) * SECONDS_PER_MINUTE;
+
+            long currentTime = System.currentTimeMillis();
+            int currentPosition = flywheelMotorRight.getCurrentPosition();
+
+            double deltaTime = (currentTime - lastTime) / 1000.0; // Convert to seconds
+            if (deltaTime == 0) return currentRPM; // Prevent divide by zero
+
+            double deltaPos = currentPosition - lastPosition;
+
+            return (deltaPos / 8192.0) * (60.0 / deltaTime);;
+            lastTime = currentTime;
+            lastPosition = currentPosition;
+
+
+
     }
 
 
