@@ -22,6 +22,9 @@ public class Shooter {
     Follower follower;
     Ballistics ballistics;
     TelemetryDebug telemetryDebug;
+    private double lastPosition = 0;
+    private double lastTime = 0;
+    private double filteredRPM = 0;
 
     LynxModule hub;
 
@@ -29,7 +32,7 @@ public class Shooter {
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
     // TODO: Tune this!
-    final PIDFController flywheelPIDF  = new PIDFController(0.5, 0.0, 0.0, 1);
+    final PIDFController flywheelPIDF  = new PIDFController(0.0005, 0.000005, 0.00003, 0.000225225225);
 
     boolean isRed;
 
@@ -41,11 +44,11 @@ public class Shooter {
      */
     public Shooter (HardwareMap hardwareMap, Follower follower, boolean isRed, TelemetryDebug debug) {
         flywheelMotorRight = hardwareMap.get(DcMotorEx.class, "rightFlywheelMotor");
-        flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         flywheelMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         flywheelMotorLeft = hardwareMap.get(DcMotorEx.class, "leftFlywheelMotor");
-        flywheelMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        flywheelMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         flywheelMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
@@ -58,6 +61,9 @@ public class Shooter {
         this.telemetryDebug = debug;
 
         hub = hardwareMap.getAll(LynxModule.class).get(0);
+
+        flywheelPIDF.setTolerance(10);
+        lastTime = System.nanoTime() / 1E9;
     }
 
     /**
@@ -101,6 +107,7 @@ public class Shooter {
             compensatedDistance = distanceFromTarget;
         }
 
+
     }
 
     /**
@@ -111,12 +118,23 @@ public class Shooter {
 //        double targetVel = ballistics.calculateFlywheelSpeed(compensatedDistance);
 //        double targetPitch = ballistics.calculatePitch(compensatedDistance);
 
+        double manualRPM = getFlywheelSpeed();
+
         // Calculate power based on velocity error
         // TODO: Revert back to interpolated values once tuned
-        double power = flywheelPIDF.calculate(flywheelMotorRight.getVelocity(), ((0.00294117647059*(compensatedDistance)) + 5.078529412)  *  (13/ hub.getInputVoltage(VoltageUnit.VOLTS))); // 16.666 is max
+        double currentVelocity = getFlywheelSpeed();
+        double power = flywheelPIDF.calculate(currentVelocity, 3375);
+
+        power *= 13.0 / getVoltage();
+
+        power = Math.max(0, power);
+
         flywheelMotorRight.setPower(power);
         flywheelMotorLeft.setPower(power);
-        telemetryDebug.createWatcher("Flywheel Speed: ", power);
+//        flywheelMotorRight.setPower(1);
+//        flywheelMotorLeft.setPower(1);
+        telemetryDebug.createWatcher("Flywheel Power: ", power);
+        telemetryDebug.createWatcher("Error", flywheelPIDF.getPositionError());
 //        pitchServo.setPosition(ballistics.calculatePitch(compensatedDistance)); //0 highest, 1 lowest
         pitchServo.setPosition(0.043);
 
@@ -216,13 +234,44 @@ public class Shooter {
         ballistics.pitchCorrection = 0;
         ballistics.flywheelSpeedCorrection = 0;
     }
+    public double getFlywheelSpeed() {
+        // 1. Refresh current values EVERY loop
+        double currentPosition = flywheelMotorRight.getCurrentPosition();
+        double currentTime = System.nanoTime() / 1E9;
+
+        // 2. Calculate change in time
+        double dt = currentTime - lastTime;
+
+        // Safety check: if the loop is too fast, don't divide by zero
+        if (dt < 0.0001) return filteredRPM;
+
+        // 3. Calculate velocity
+        double deltaTicks = currentPosition - lastPosition;
+        double ticksPerSecond = deltaTicks / dt;
+        double rawRPM = (ticksPerSecond / 8192.0) * 60.0;
+
+        // 4. Low Pass Filter (Smooths the jitter)
+        filteredRPM = (0.2 * rawRPM) + (0.8 * filteredRPM);
+
+        // 5. Save current values as "last" values for the NEXT loop
+        lastPosition = currentPosition;
+        lastTime = currentTime;
+
+        return Math.abs(filteredRPM);
+    }
     public double getDistanceFromTarget () { return distanceFromTarget; }
     public double getFlywheelPower() { return flywheelMotorRight.getPower(); }
-    public double getFlywheelSpeed() { return flywheelMotorRight.getVelocity(); }
     public double getPitch () { return pitchServo.getPosition(); }
+    public double getPosition () {return flywheelMotorRight.getCurrentPosition();}
     public void zeroPitchServo() { pitchServo.setPosition(0.0); }
     public void maxPitchServo() {pitchServo.setPosition(1);}
     public double getVoltage () {return hub.getInputVoltage(VoltageUnit.VOLTS);}
+    public double toRpm (double ticksPerSecond) {
+        final double TICKS_PER_REVOLUTION = 8192.0;
+        final double SECONDS_PER_MINUTE = 60.0;
+
+        return (ticksPerSecond / TICKS_PER_REVOLUTION) * SECONDS_PER_MINUTE;
+    }
 
     public boolean isPitchServoThere(){
         if (pitchServo != null){

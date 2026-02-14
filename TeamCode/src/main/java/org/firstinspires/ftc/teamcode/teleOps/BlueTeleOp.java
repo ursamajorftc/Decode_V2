@@ -143,6 +143,8 @@ public class BlueTeleOp extends OpMode {
         telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());
         telemetry.addData("Pitch Servo Position", shooter.getPitch());
         telemetry.addData("Voltage", shooter.getVoltage());
+        telemetry.addData("Currnet RPM", shooter.getFlywheelSpeed() );
+        telemetry.addData("Current Position", shooter.getPosition());
         for (TelemetryDebug.watcher w : telemetryDebug.watchers){
             telemetry.addData(w.getName(), w.getValue());
         }

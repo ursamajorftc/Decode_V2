@@ -21,8 +21,8 @@ public class Tuning extends OpMode {
 
     private TelemetryManager telemetryManager;
 
-    double[] stepSizes = {1.0, 0.1, 0.01, 0.001};
-    int stepIndex = 0;
+    double[] stepSizes = {10.0, 1.0, 0.1, 0.01, 0.001, 0.0001};
+    int stepIndex = 1;
 
 
     @Override

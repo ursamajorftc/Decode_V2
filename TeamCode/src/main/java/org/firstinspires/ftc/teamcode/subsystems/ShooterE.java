@@ -31,12 +31,13 @@ public class ShooterE {
     public double P = 0;  // Volts per RPM (feedforward)
 
     //Variables
-    public double highRPM = 4000;      // Desired flywheel speed
-    public double lowRPM = 900;
+    public double highRPM = 2000;      // Desired flywheel speed
+    public double lowRPM = 200;
     public double targetRPM = highRPM;
     public double currentRPM;        // Measured speed
     public double errorRPM;
 
+    public double filteredRPM;
     public double motorPower;
     public PIDFController PIDF_MotorInput  = new PIDFController(P, 0.0, 0.0, F);
 
@@ -58,7 +59,7 @@ public class ShooterE {
 
 
     public void updateShooter() {
-        currentRPM = getFlywheelRPM();
+        currentRPM = toRpm(flywheelMotorRight.getVelocity());
         errorRPM = targetRPM - currentRPM;
 
         PIDF_MotorInput.setP(P);
@@ -66,7 +67,7 @@ public class ShooterE {
 
 
         // Used to calculate motor power feeding in CurrentRPM and Target RPM, then compensating the voltage for each value
-        motorPower = PIDF_MotorInput.calculate(currentRPM, targetRPM) * (12/ batteryVoltage.getVoltage());
+        motorPower = PIDF_MotorInput.calculate(currentRPM, targetRPM);
 
 
         // Apply to motors
@@ -79,8 +80,18 @@ public class ShooterE {
     // Gets the Current Flywheel RPM
     public double getFlywheelRPM() {
         double ticksPerSecond = flywheelMotorRight.getVelocity();
-        return (ticksPerSecond / TICKS_PER_REV) * SECONDS_PER_MINUTE;
+        final double TICKS_PER_REVOLUTION = 8192.0;
+        final double SECONDS_PER_MINUTE = 60.0;
+
+        return (ticksPerSecond / TICKS_PER_REVOLUTION) * SECONDS_PER_MINUTE;
     }
+    public double toRpm (double ticksPerSecond) {
+        final double TICKS_PER_REVOLUTION = 8192.0;
+        final double SECONDS_PER_MINUTE = 60.0;
+
+        return (ticksPerSecond / TICKS_PER_REVOLUTION) * SECONDS_PER_MINUTE;
+    }
+
 
 
 }
