@@ -46,7 +46,7 @@ public class RedTeleOp extends OpMode {
         for (int i = 0; i < 3; i++) {
             follower.update();
         }
-        telemetryDebug = new TelemetryDebug();
+        telemetryDebug = new TelemetryDebug(telemetry);
         intake = new Intake(hardwareMap);
         turret = new Turret(hardwareMap, follower, true);
         shooter = new Shooter(hardwareMap, follower, true, telemetryDebug);
@@ -139,6 +139,7 @@ public class RedTeleOp extends OpMode {
         telemetry.addData("Flywheel Speed", shooter.getFlywheelSpeed());
         telemetry.addData("Pitch Servo Position", shooter.getPitch());
         telemetry.addData("Voltage", shooter.getVoltage());
+        telemetryDebug.logData();
     }
 
     @Override

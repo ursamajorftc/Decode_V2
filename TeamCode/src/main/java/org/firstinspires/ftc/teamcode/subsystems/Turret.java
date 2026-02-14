@@ -115,7 +115,6 @@ public class Turret {
         double compensationCoefficient = 0.0;
         compensation = compensationCoefficient * (linearVelocity + angularVelocity);
 
-
     }
 
     /**
@@ -136,9 +135,8 @@ public class Turret {
         } else {
             // Fallback to Odometry
             // We want turretPosition to match relativeTargetHeading
-//            double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading - compensation);
-//            power = normalizePower(power);
-            double power = 0;
+            double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading - compensation);
+//            double power = 0;
 
             rightTurretServo.setPower(power);
             leftTurretServo.setPower(power);

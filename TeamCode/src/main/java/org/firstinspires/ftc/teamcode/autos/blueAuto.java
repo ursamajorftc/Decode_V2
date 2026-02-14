@@ -51,7 +51,7 @@ public class blueAuto extends OpMode {
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
-        telemetryDebug = new TelemetryDebug();
+        telemetryDebug = new TelemetryDebug(telemetry);
         turret = new Turret(hardwareMap, follower, false);
         shooter = new Shooter(hardwareMap, follower, false, telemetryDebug);
         intake = new Intake(hardwareMap);
