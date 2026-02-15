@@ -76,7 +76,7 @@ public class Intake {
 //        time = transferTimer.getElapsedTimeSeconds();
 //        // TODO: Tune the amount of time the intake motor should run
 //        if (time < 0.7) {
-//            intakeMotor.setPower(1);
+//            turretEncoder.setPower(1);
 //        }
     }
 }

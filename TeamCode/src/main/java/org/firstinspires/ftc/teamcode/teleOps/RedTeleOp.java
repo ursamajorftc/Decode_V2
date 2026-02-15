@@ -136,7 +136,7 @@ public class RedTeleOp extends OpMode {
         telemetry.addData("Distance From Target", shooter.getDistanceFromTarget());
         telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());
         telemetry.addData("Flywheel Power", shooter.getFlywheelPower());
-        telemetry.addData("Flywheel Speed", shooter.getFlywheelSpeed());
+        telemetry.addData("Flywheel Speed", shooter.getFlywheelRPM());
         telemetry.addData("Pitch Servo Position", shooter.getPitch());
         telemetry.addData("Voltage", shooter.getVoltage());
         telemetryDebug.logData();

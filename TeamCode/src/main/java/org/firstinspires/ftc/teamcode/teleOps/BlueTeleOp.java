@@ -41,7 +41,7 @@ public class BlueTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(53.0,25, Math.PI));
+        follower.setStartingPose(new Pose(66.85901639344263, 80.47213114754099, Math.PI));
 
         for (int i = 0; i < 3; i++) {
             follower.update();
@@ -59,7 +59,10 @@ public class BlueTeleOp extends OpMode {
 
     }
 
-    public void start() {follower.startTeleOpDrive();}
+    public void start() {
+        follower.startTeleOpDrive();
+        shooter.start();
+    }
 
     @Override
     public void loop() {
@@ -143,7 +146,7 @@ public class BlueTeleOp extends OpMode {
         telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());
         telemetry.addData("Pitch Servo Position", shooter.getPitch());
         telemetry.addData("Voltage", shooter.getVoltage());
-        telemetry.addData("Currnet RPM", shooter.getFlywheelSpeed() );
+        telemetry.addData("Currnet RPM", shooter.getFlywheelRPM() );
         telemetry.addData("Current Position", shooter.getPosition());
         for (TelemetryDebug.watcher w : telemetryDebug.watchers){
             telemetry.addData(w.getName(), w.getValue());

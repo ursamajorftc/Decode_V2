@@ -7,11 +7,10 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 
 // Servo turret left is control hub port 5
 // Everything is in RADIANS
@@ -19,7 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 public class Turret {
     CRServo leftTurretServo;
     CRServo rightTurretServo;
-    DcMotorEx intakeMotor;
+    DcMotorEx turretEncoder;
     Follower follower;
     Limelight3A limelight;
 
@@ -30,14 +29,14 @@ public class Turret {
     double isLLgetting;
 
     // TODO: TUNE THIS VALUE!
-    public static double RADIANSPERTICK = 1.0;
+    public static double RADIANSPERTICK = -4480.0;
 
     final Pose REDTARGET = new Pose(137.0, 143.0);
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
     // TODO: Tune these. Expect very different P values!
-    final PIDFController limelightPIDF = new PIDFController(0.02, 0.014, 0.001, 0.0);
-    final PIDFController odometryPIDF = new PIDFController(0.3, 0.0, 0.003, 0.0);
+    final PIDFController limelightPIDF = new PIDFController(0.008, 0.003, 0.00015, 0.005);
+    final PIDFController odometryPIDF = new PIDFController(0.0, 0.0, 0.0, 0.0);
 
     double relativeTargetHeading;
     boolean isRed;
@@ -58,12 +57,15 @@ public class Turret {
         rightTurretServo = hardwareMap.get(CRServo.class, "rightTurretServo");
 
         // We're using flywheel motor's position as positioning for the turret
-        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
+        turretEncoder = hardwareMap.get(DcMotorEx.class, "intakeMotor");
 
         // Declares and sets up limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(isRed ? 0 : 1);
         limelight.start();
+
+        turretEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     /**
@@ -71,7 +73,7 @@ public class Turret {
      */
     public void update () {
         // Calculate turret angle relative to the robot chassis
-        turretPosition = AngleUnit.normalizeRadians(intakeMotor.getCurrentPosition() * RADIANSPERTICK);
+        turretPosition = AngleUnit.normalizeRadians(turretEncoder.getCurrentPosition() * RADIANSPERTICK);
 
         // Get target coordinates
         double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
@@ -112,8 +114,7 @@ public class Turret {
         double angularVelocity = follower.getAngularVelocity() * turretRadius;
 
         // TODO: Tune this
-        double compensationCoefficient = 0.0;
-        compensation = compensationCoefficient * (linearVelocity + angularVelocity);
+        compensation = (linearVelocity + angularVelocity);
 
     }
 
@@ -126,7 +127,9 @@ public class Turret {
         LLResult llResult = limelight.getLatestResult();
 
         if (llResult != null && llResult.isValid()) {
-            // Limelight tx is in degrees. Target is 0.
+            // TODO: Tune this
+            double compensationCoefficient = 0.0;
+            compensation *= 0.0;
             double power = limelightPIDF.calculate(llResult.getTx(), 0 - compensation);
             // power = normalizePower(power);
             isLLgetting = power;
@@ -135,6 +138,9 @@ public class Turret {
         } else {
             // Fallback to Odometry
             // We want turretPosition to match relativeTargetHeading
+            // TODO: Tune this
+            double compensationCoefficient = 0.0;
+            compensation *= 0.0;
             double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading - compensation);
 //            double power = 0;
 
@@ -177,7 +183,7 @@ public class Turret {
             return Math.max(-1, Math.min(1, power));
         }
     }
-    public double getTurretPosition() { return intakeMotor.getCurrentPosition(); }
+    public double getTurretPosition() { return turretEncoder.getCurrentPosition(); }
     public double getRelativeTargetHeading() { return relativeTargetHeading; }
 
     public double checkLL(){ return isLLgetting; }

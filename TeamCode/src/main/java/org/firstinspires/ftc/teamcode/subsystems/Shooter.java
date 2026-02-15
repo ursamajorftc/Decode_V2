@@ -6,6 +6,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -25,6 +26,7 @@ public class Shooter {
     private double lastPosition = 0;
     private double lastTime = 0;
     private double filteredRPM = 0;
+    Servo light;
 
     LynxModule hub;
 
@@ -32,9 +34,13 @@ public class Shooter {
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
     // TODO: Tune this!
-    final PIDFController flywheelPIDF  = new PIDFController(0.0005, 0.000005, 0.00003, 0.000225225225);
+    final PIDFController flywheelPIDF  = new PIDFController(0.00035, 0.0, 0.000003, 0.00021);
+    private double[] errorBuffer = new double[20]; // Stores last 20 errors
+    private int bufferIndex = 0; // Tracks where we are in the array
+    private double rollingErrorAverage = 0;
 
     boolean isRed;
+    private boolean hasAccelerated = false;
 
     /**
      *
@@ -50,6 +56,7 @@ public class Shooter {
         flywheelMotorLeft = hardwareMap.get(DcMotorEx.class, "leftFlywheelMotor");
         flywheelMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         flywheelMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        light = hardwareMap.get(Servo.class, "led");
 
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
@@ -62,8 +69,11 @@ public class Shooter {
 
         hub = hardwareMap.getAll(LynxModule.class).get(0);
 
-        flywheelPIDF.setTolerance(10);
         lastTime = System.nanoTime() / 1E9;
+        light.setPosition(0);
+    }
+    public void start () {
+        light.setPosition(0.29);
     }
 
     /**
@@ -107,6 +117,11 @@ public class Shooter {
             compensatedDistance = distanceFromTarget;
         }
 
+        if(Math.abs(flywheelPIDF.getPositionError()) < 100) {
+            light.setPosition(0.555);
+        } else {
+            light.setPosition(0.29);
+        }
 
     }
 
@@ -118,16 +133,13 @@ public class Shooter {
 //        double targetVel = ballistics.calculateFlywheelSpeed(compensatedDistance);
 //        double targetPitch = ballistics.calculatePitch(compensatedDistance);
 
-        double manualRPM = getFlywheelSpeed();
+        if (!hasAccelerated){hasAccelerated = true;}
+        double manualRPM = getFlywheelRPM();
 
         // Calculate power based on velocity error
         // TODO: Revert back to interpolated values once tuned
-        double currentVelocity = getFlywheelSpeed();
-        double power = flywheelPIDF.calculate(currentVelocity, 3375);
-
-        power *= 13.0 / getVoltage();
-
-        power = Math.max(0, power);
+        double currentRPM = getFlywheelRPM();
+        double power = flywheelPIDF.calculate(currentRPM, 3400);
 
         flywheelMotorRight.setPower(power);
         flywheelMotorLeft.setPower(power);
@@ -135,17 +147,38 @@ public class Shooter {
 //        flywheelMotorLeft.setPower(1);
         telemetryDebug.createWatcher("Flywheel Power: ", power);
         telemetryDebug.createWatcher("Error", flywheelPIDF.getPositionError());
+        updateErrorAverage(flywheelPIDF.getPositionError());
 //        pitchServo.setPosition(ballistics.calculatePitch(compensatedDistance)); //0 highest, 1 lowest
-        pitchServo.setPosition(0.043);
+        pitchServo.setPosition(0.5);
+        // 0.86 is the bottom max
 
+    }
+    public void updateErrorAverage(double currentError) {
+        // 1. Overwrite the oldest value with the newest one
+        errorBuffer[bufferIndex] = Math.abs(currentError);
+
+        // 2. Move the index forward, wrapping around to 0 if we hit 20
+        bufferIndex = (bufferIndex + 1) % errorBuffer.length;
+
+        // 3. Calculate the new average of the array
+        double sum = 0;
+        for (double error : errorBuffer) {
+            sum += error;
+        }
+        rollingErrorAverage = sum / errorBuffer.length;
+        telemetryDebug.createWatcher("Average Error", rollingErrorAverage);
     }
 
     /**
      * Stops flywheel
      */
     public void idle () {
-        flywheelMotorRight.setPower(0);
-        flywheelMotorLeft.setPower(0);
+//        flywheelMotorRight.setPower(0);
+//        flywheelMotorLeft.setPower(0);
+        double currentRPM = getFlywheelRPM();
+        double power = flywheelPIDF.calculate(currentRPM, 0);
+        flywheelMotorRight.setPower(hasAccelerated ? power : 0);
+        flywheelMotorLeft.setPower(hasAccelerated ? power : 0);
     }
 
     public void backSpin (double power) {
@@ -171,33 +204,15 @@ public class Shooter {
 
             // TODO: Add real data points here
 
+            flywheelLut.add(66.5, 2600);
+            flywheelLut.add(89.5, 2880);
+            flywheelLut.add(142.54, 3380);
+            flywheelLut.add(159.2, 3400);
 
-            flywheelLut.add(1, 4.8);
-            flywheelLut.add(60.2189384516,5);
-            flywheelLut.add(71.2380348421,5);
-            flywheelLut.add(91.8430034076,5);
-            flywheelLut.add(100.883309198,5.1);
-            flywheelLut.add(102.592238687,5.3);
-            flywheelLut.add(116.89333451,5.3);
-            flywheelLut.add(126.3, 5.45); //good
-            flywheelLut.add(141.704101355,5.34);
-            flywheelLut.add(143.3, 5.5); // good
-            flywheelLut.add(200, 5.6);
-            flywheelLut.add(300, 5.8);
-
-            pitchLut.add(1, 0.042);
-            pitchLut.add(60.2189384516,0.045);
-            pitchLut.add(71.2380348421,0.045);
-            pitchLut.add(91.8430034076,0.04);
-            pitchLut.add(100.883309198,0.043);
-            pitchLut.add(102.592238687,0.044);
-            pitchLut.add(116.89333451,0.043);
-            pitchLut.add(126.3, 0.044); // good
-            pitchLut.add(127.1, 0.043);
-            pitchLut.add(141.704101355,0.044);
-            pitchLut.add(143.3, 0.044);//good
-            pitchLut.add(200, 0.045);
-            pitchLut.add(300, 0.047);
+            pitchLut.add(66.5, 0.86);
+            pitchLut.add(89.5, 0.86);
+            pitchLut.add(142.54, 0.5);
+            pitchLut.add(159.2, 0.5);
 
 
 
@@ -234,7 +249,7 @@ public class Shooter {
         ballistics.pitchCorrection = 0;
         ballistics.flywheelSpeedCorrection = 0;
     }
-    public double getFlywheelSpeed() {
+    public double getFlywheelRPM() {
         // 1. Refresh current values EVERY loop
         double currentPosition = flywheelMotorRight.getCurrentPosition();
         double currentTime = System.nanoTime() / 1E9;
