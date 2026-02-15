@@ -41,7 +41,7 @@ public class BlueTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(66.85901639344263, 80.47213114754099, Math.PI));
+        follower.setStartingPose(new Pose(56.94426229508197, 101.48196721311474, Math.PI));
 
         for (int i = 0; i < 3; i++) {
             follower.update();
@@ -77,21 +77,21 @@ public class BlueTeleOp extends OpMode {
             follower.setTeleOpDrive(
                     -gamepad1.left_stick_y, // Forward/Back
                     -gamepad1.left_stick_x, // Strafe
-                    -gamepad1.right_stick_x, // Turn
+                    -gamepad1.right_stick_x * 0.5, // Turn
                     true // TRUE = Robot Centric
             );
         }
 
-        if (gamepad2.a) {
+        if (gamepad1.left_trigger > 0.1) {
             intake.intake();
         } else {
             intake.stop();
-            if (gamepad2.right_stick_y > 0) {
-                shooter.backSpin(gamepad2.right_stick_y);
-                intake.backSpin(gamepad2.right_stick_y);
+            if (gamepad1.dpad_down) {
+                shooter.backSpin(1);
+                intake.backSpin(0.7);
             }
         }
-        if (gamepad2.b) {
+        if (gamepad1.b) {
             intake.transfer();
         }
 
@@ -101,13 +101,13 @@ public class BlueTeleOp extends OpMode {
 //            shooter.zeroPitchServo();
 //        }
 
-        boolean currentTriggerState = gamepad2.right_trigger > 0.1;
-        if (currentTriggerState && !previousTriggerState) {
-            intake.transfer();
-        }
-        previousTriggerState = currentTriggerState;
+//        boolean currentTriggerState = gamepad2.right_trigger > 0.1;
+//        if (currentTriggerState && !previousTriggerState) {
+//            intake.transfer();
+//        }
+//        previousTriggerState = currentTriggerState;
 
-        if (gamepad2.right_bumper) {
+        if (gamepad1.right_bumper) {
             turret.aim();
             shooter.accelerateFlywheel();
 //            intake.openGates();

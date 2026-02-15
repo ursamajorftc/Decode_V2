@@ -34,7 +34,7 @@ public class Shooter {
     final Pose BLUETARGET = new Pose (6.0, 143.0);
 
     // TODO: Tune this!
-    final PIDFController flywheelPIDF  = new PIDFController(0.00035, 0.0, 0.000003, 0.00021);
+    final PIDFController flywheelPIDF  = new PIDFController(0.0005, 0.00005, 0.000003, 0.00022);
     private double[] errorBuffer = new double[20]; // Stores last 20 errors
     private int bufferIndex = 0; // Tracks where we are in the array
     private double rollingErrorAverage = 0;
@@ -130,16 +130,16 @@ public class Shooter {
      */
     public void accelerateFlywheel () {
         // Retrieves Targets from Ballistic Class
-//        double targetVel = ballistics.calculateFlywheelSpeed(compensatedDistance);
+//        double targetRPM = ballistics.calculateFlywheelSpeed(compensatedDistance);
 //        double targetPitch = ballistics.calculatePitch(compensatedDistance);
-
-        if (!hasAccelerated){hasAccelerated = true;}
-        double manualRPM = getFlywheelRPM();
+        if (!hasAccelerated) {hasAccelerated = true;}
 
         // Calculate power based on velocity error
         // TODO: Revert back to interpolated values once tuned
         double currentRPM = getFlywheelRPM();
-        double power = flywheelPIDF.calculate(currentRPM, 3400);
+        // y=-2083.85427+1072.08529 * ln(x)
+        double targetRPM = -2278 + (1125 * Math.log(compensatedDistance));
+        double power = flywheelPIDF.calculate(currentRPM, targetRPM);
 
         flywheelMotorRight.setPower(power);
         flywheelMotorLeft.setPower(power);
@@ -149,7 +149,8 @@ public class Shooter {
         telemetryDebug.createWatcher("Error", flywheelPIDF.getPositionError());
         updateErrorAverage(flywheelPIDF.getPositionError());
 //        pitchServo.setPosition(ballistics.calculatePitch(compensatedDistance)); //0 highest, 1 lowest
-        pitchServo.setPosition(0.5);
+        // y=-0.00468917x+1.02871
+        pitchServo.setPosition(-0.00468917*compensatedDistance+0.87);
         // 0.86 is the bottom max
 
     }
@@ -199,20 +200,29 @@ public class Shooter {
 
         public Ballistics () {
             // Any request from LUT requires key to be in range
-            flywheelLut.add(0, 4.7);   // Safety defaults
-            pitchLut.add(0, 0.042);
+            flywheelLut.add(0, 2035);   // Safety defaults
+            pitchLut.add(0, 0.86);
 
             // TODO: Add real data points here
 
-            flywheelLut.add(66.5, 2600);
-            flywheelLut.add(89.5, 2880);
-            flywheelLut.add(142.54, 3380);
-            flywheelLut.add(159.2, 3400);
+            flywheelLut.add(65.7, 2410);
+            flywheelLut.add(70.6, 2500);
+            flywheelLut.add(85.6, 2600);
+            flywheelLut.add(106.8, 3000);
+            //flywheelLut.add(142.54, 3380);
+            flywheelLut.add(147.2, 3270);
+            flywheelLut.add(164.8, 3370);
+           // flywheelLut.add(159.2, 3400);
+            flywheelLut.add(300, 5000);
 
-            pitchLut.add(66.5, 0.86);
-            pitchLut.add(89.5, 0.86);
-            pitchLut.add(142.54, 0.5);
-            pitchLut.add(159.2, 0.5);
+            pitchLut.add(65.7, 0.7);
+            pitchLut.add(70.6,0.7);
+            pitchLut.add(85.6, 0.65);
+           // pitchLut.add(142.54, 0.5);
+            pitchLut.add(147.2, 0.34);
+          //  pitchLut.add(159.2, 0.5);
+            pitchLut.add(164.8, 0.25);
+            pitchLut.add(300, 0);
 
 
 

@@ -82,6 +82,9 @@ public class blueAuto extends OpMode {
         } else {
             intakePower = 1;
         }
+
+        pathTimer.resetTimer();
+        opmodeTimer.resetTimer();
     }
 
     @Configurable
@@ -107,7 +110,7 @@ public class blueAuto extends OpMode {
         // Refer to the Pedro Pathing Docs (Auto Example) for an example state machine
         switch (pathState) {
             case 1:
-                pathTimer.resetTimer();
+//                pathTimer.resetTimer();
                 shootThreeBalls(pathTimer);
                if (hasShoot) {
                     follower.followPath(paths.Path1);
@@ -127,39 +130,15 @@ public class blueAuto extends OpMode {
     public void setPathState(int pathState) {
         this.pathState = pathState;
         pathTimer.resetTimer();
+        hasShoot = false;
     }
-//    public void shootThreeBalls (Timer pathTimer) {
-//        if (pathTimer.getElapsedTimeSeconds() < 4.15) {
-//            turret.aim();
-//            shooter.accelerateFlywheel();
-//        }
-//        if (pathTimer.getElapsedTimeSeconds() > 4 && pathTimer.getElapsedTimeSeconds() < 4.15) {
-//            intake.intake(intakePower); // Sends ball to shooter
-//        }
-//        if (pathTimer.getElapsedTimeSeconds() >= 4.15 && pathTimer.getElapsedTimeSeconds() < 5.15) {
-//            intake.stop();
-//        }
-//        if (pathTimer.getElapsedTimeSeconds() > 5.15 && pathTimer.getElapsedTimeSeconds() < 5.22) {
-//            intake.intake(intakePower);
-//        }
-//        if (pathTimer.getElapsedTimeSeconds() > 5.22 && pathTimer.getElapsedTimeSeconds() < 6.8) {
-//            intake.stop();
-//        }
-//        if (pathTimer.getElapsedTimeSeconds() > 6.8 && pathTimer.getElapsedTimeSeconds() < 7.5) {
-//            intake.intake(intakePower);
-//        }
-//        if (pathTimer.getElapsedTimeSeconds() > 7.5) {
-//            intake.stop();
-//            shooter.idle();
-//        }
-//    }
 public void shootThreeBalls(Timer pathTimer) {
-    pathTimer.resetTimer();
+//    pathTimer.resetTimer();
     double time = pathTimer.getElapsedTimeSeconds();
 
 
     // 1. Keep the flywheel and turret active for the WHOLE sequence
-    if (time < 10.5) {
+    if (time < 6.6) {
         turret.aim();
         shooter.accelerateFlywheel();
     } else {
@@ -169,26 +148,27 @@ public void shootThreeBalls(Timer pathTimer) {
 
     // 2. Pulse the intake for the three individual shots
     // Shot 1
-    if (time > 3.9 && time < 4.2) {
+    if (time > 3.9 && time < 4.5) {
         intake.intake(intakePower);
     }
     // Gap 1
-    else if (time >= 4.2 && time < 6.1) {
+    else if (time >= 4.5 && time < 5) {
         intake.stop();
     }
     // Shot 2
-    else if (time >= 6.1 && time < 6.5) {
+    else if (time >= 5 && time < 5.5) {
         intake.intake(intakePower);
     }
-    // Gap 2
-    else if (time >= 6.5 && time <= 8.4) {
-        intake.stop();
-
-    }
-//     Shot 3
-    else if (time >= 8.4 && time < 10.9) {
-        intake.intake(intakePower);
-    } if (time >= 12){
+//    // Gap 2
+//    else if (time >= 5.2 && time <= 6.0) {
+//        intake.stop();
+//
+//    }
+////     Shot 3
+//    else if (time >= 6.0 && time < 6.5) {
+//        intake.intake(intakePower);
+//    }
+    if (time >= 5.6){
         intake.idle();
         shooter.idle();
         turret.idle();
