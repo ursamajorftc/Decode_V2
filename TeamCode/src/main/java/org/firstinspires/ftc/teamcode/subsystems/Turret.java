@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.utilities.TelemetryDebug;
 
 // Servo turret left is control hub port 5
 // Everything is in RADIANS
@@ -194,7 +195,10 @@ public class Turret {
     }
 
     public double getTurretPosition() {
-        return turretEncoder.getCurrentPosition();
+        return AngleUnit.normalizeRadians(turretEncoder.getCurrentPosition() * RADIANSPERTICK);
+    }
+    public void setTurretPosition (double turretPosition) {
+        this.turretPosition = turretPosition;
     }
 
     public double getRelativeTargetHeading() {

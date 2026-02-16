@@ -4,8 +4,8 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.Pose;
 import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -16,15 +16,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
-import org.firstinspires.ftc.teamcode.subsystems.TelemetryDebug;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
+import org.firstinspires.ftc.teamcode.utilities.Datavault;
+import org.firstinspires.ftc.teamcode.utilities.TelemetryDebug;
 
 @Autonomous(name = "Blue Auto", group = "Competition Autos")
 @Configurable
 public class blueAuto extends OpMode {
+    public Follower follower; // Pedro Pathing follower instance
     boolean hasShot = false;
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
-    public Follower follower; // Pedro Pathing follower instance
     private Timer pathTimer, opmodeTimer;
     private int pathState = 1; // Current autonomous path state (state machine)
     private Paths paths; // Paths defined in the Paths class
@@ -78,30 +79,13 @@ public class blueAuto extends OpMode {
     public void start() {
         double voltage = hub.getInputVoltage(VoltageUnit.VOLTS);
         if (voltage > 12.4) {
-            intakePower = 12.4/voltage;
+            intakePower = 12.4 / voltage;
         } else {
             intakePower = 1;
         }
 
         pathTimer.resetTimer();
         opmodeTimer.resetTimer();
-    }
-
-    @Configurable
-    private static class Paths {
-
-        public static PathChain Path1;
-        public static PathChain Path2;
-
-        public Paths(Follower follower) {
-            Path1 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(53.351, 8.498),
-                                    new Pose(53.351,25)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
-                    .build();
-        }
     }
 
     public int autonomousPathUpdate() {
@@ -112,10 +96,10 @@ public class blueAuto extends OpMode {
             case 1:
 //                pathTimer.resetTimer();
                 shootThreeBalls(pathTimer);
-               if (hasShot) {
+                if (hasShot) {
                     follower.followPath(paths.Path1);
                     setPathState(pathState + 1);
-               }
+                }
                 break;
             case 2:
                 if (!follower.isBusy()) {
@@ -132,33 +116,34 @@ public class blueAuto extends OpMode {
         pathTimer.resetTimer();
         hasShot = false;
     }
-public void shootThreeBalls(Timer pathTimer) {
+
+    public void shootThreeBalls(Timer pathTimer) {
 //    pathTimer.resetTimer();
-    double time = pathTimer.getElapsedTimeSeconds();
+        double time = pathTimer.getElapsedTimeSeconds();
 
 
-    // 1. Keep the flywheel and turret active for the WHOLE sequence
-    if (time < 6.6) {
-        turret.aim();
-        shooter.accelerate();
-    } else {
-        intake.stop();
-        shooter.idle();
-    }
+        // 1. Keep the flywheel and turret active for the WHOLE sequence
+        if (time < 6.6) {
+            turret.aim();
+            shooter.accelerate();
+        } else {
+            intake.stop();
+            shooter.idle();
+        }
 
-    // 2. Pulse the intake for the three individual shots
-    // Shot 1
-    if (time > 3.9 && time < 4.5) {
-        intake.intake(intakePower);
-    }
-    // Gap 1
-    else if (time >= 4.5 && time < 5) {
-        intake.stop();
-    }
-    // Shot 2
-    else if (time >= 5 && time < 5.5) {
-        intake.intake(intakePower);
-    }
+        // 2. Pulse the intake for the three individual shots
+        // Shot 1
+        if (time > 3.9 && time < 4.5) {
+            intake.intake(intakePower);
+        }
+        // Gap 1
+        else if (time >= 4.5 && time < 5) {
+            intake.stop();
+        }
+        // Shot 2
+        else if (time >= 5 && time < 5.5) {
+            intake.intake(intakePower);
+        }
 //    // Gap 2
 //    else if (time >= 5.2 && time <= 6.0) {
 //        intake.stop();
@@ -168,13 +153,35 @@ public void shootThreeBalls(Timer pathTimer) {
 //    else if (time >= 6.0 && time < 6.5) {
 //        intake.intake(intakePower);
 //    }
-    if (time >= 5.6){
-        intake.stop();
-        shooter.idle();
-        turret.idle();
-        hasShot = true;
-    } else {
-        hasShot = false;
+        if (time >= 5.6) {
+            intake.stop();
+            shooter.idle();
+            turret.idle();
+            hasShot = true;
+        } else {
+            hasShot = false;
+        }
     }
-}
+
+    @Configurable
+    private static class Paths {
+
+        public static PathChain Path1;
+        public static PathChain Path2;
+
+        public Paths(Follower follower) {
+            Path1 = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(53.351, 8.498),
+                                    new Pose(53.351, 25)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
+                    .build();
+        }
+    }
+    @Override
+    public void stop () {
+        Datavault.finalAutoPose = follower.getPose();
+        Datavault.turretPosition = turret.getTurretPosition();
+    }
 }

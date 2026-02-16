@@ -12,7 +12,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
-import org.firstinspires.ftc.teamcode.subsystems.TelemetryDebug;
+import org.firstinspires.ftc.teamcode.utilities.Datavault;
+import org.firstinspires.ftc.teamcode.utilities.TelemetryDebug;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 import java.util.List;
@@ -23,7 +24,6 @@ public class BlueTeleOp extends OpMode {
     private Turret turret;
     private Shooter shooter;
     private Follower follower;
-    private GamepadEx controller2;
     private TelemetryManager telemetryManager;
     private TelemetryDebug telemetryDebug;
 
@@ -34,13 +34,13 @@ public class BlueTeleOp extends OpMode {
     public void init() {
         // Set Bulk Reading to Auto
         List<LynxModule> hubs = hardwareMap.getAll(LynxModule.class);
-
         for (LynxModule hub : hubs) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(53.40327868852459, 57.3377049180328, Math.PI));
+//        follower.setStartingPose(Datavault.finalAutoPose);
 
         for (int i = 0; i < 3; i++) {
             follower.update();
@@ -50,12 +50,9 @@ public class BlueTeleOp extends OpMode {
         turret = new Turret(hardwareMap, follower, false, telemetryDebug);
         shooter = new Shooter(hardwareMap, false, telemetryDebug);
 
-
-        controller2 = new GamepadEx(gamepad2);
-
         telemetryManager = PanelsTelemetry.INSTANCE.getTelemetry();
 
-
+        turret.setTurretPosition(Datavault.turretPosition);
     }
 
     public void start() {
@@ -68,7 +65,6 @@ public class BlueTeleOp extends OpMode {
         follower.update();
         turret.update();
         shooter.update();
-        controller2.readButtons();
         telemetryManager.update();
 
         if (follower.getPose() != null) {

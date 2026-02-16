@@ -1,10 +1,9 @@
-package org.firstinspires.ftc.teamcode.subsystems;
+package org.firstinspires.ftc.teamcode.utilities;
 
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class TelemetryDebug {
     public static ArrayList<watcher> watchers;
