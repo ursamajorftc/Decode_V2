@@ -143,7 +143,7 @@ public class Shooter {
     public void idle() {
         double currentRPM = getFlywheelRPM(false);
 
-        if (Math.abs(currentRPM) < 20 || currentRPM < 0) {
+        if (currentRPM < 50) {
             flywheelMotorRight.setPower(0);
             flywheelMotorLeft.setPower(0);
         } else {
