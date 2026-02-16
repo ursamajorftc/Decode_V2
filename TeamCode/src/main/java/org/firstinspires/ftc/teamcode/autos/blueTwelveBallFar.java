@@ -54,7 +54,7 @@ public class blueTwelveBallFar extends OpMode {
 
         telemetryDebug = new TelemetryDebug(telemetry);
         turret = new Turret(hardwareMap, follower, false);
-        shooter = new Shooter(hardwareMap, follower, false, telemetryDebug);
+        shooter = new Shooter(hardwareMap, false, telemetryDebug);
         intake = new Intake(hardwareMap);
 
         hub = hardwareMap.getAll(LynxModule.class).get(0);
@@ -279,7 +279,7 @@ public class blueTwelveBallFar extends OpMode {
 //                }
 //                break;
 //            case 5:
-//                shooter.accelerateFlywheel();
+//                shooter.accelerate();
 //                turret.aim();
 //                if (!follower.isBusy()) {
 //                    shootThreeBalls(pathTimer, false);
@@ -359,14 +359,14 @@ public class blueTwelveBallFar extends OpMode {
                 break;
 
             case 12: // 7. ACCELERATE AND AIM WHILE DOING PATH 6
-                shooter.accelerateFlywheel();
+                shooter.accelerate();
                 turret.aim();
                 follower.followPath(paths.Path6);
                 setPathState(13);
                 break;
 
             case 13: // WAIT FOR PATH 6 (Keep Aiming!)
-                shooter.accelerateFlywheel();
+                shooter.accelerate();
                 turret.aim();
                 if (!follower.isBusy()) {
                     setPathState(14);
@@ -396,7 +396,7 @@ public class blueTwelveBallFar extends OpMode {
             // 1. Keep the flywheel and turret active for the WHOLE sequence
             if (time < 3.5) {
                 turret.aim();
-                shooter.accelerateFlywheel();
+                shooter.accelerate();
             }
 
             if (time >= 2.5 && time < 3.5) {
@@ -408,7 +408,7 @@ public class blueTwelveBallFar extends OpMode {
             }
         } else {
             if (time < 1.0) {
-                shooter.accelerateFlywheel();
+                shooter.accelerate();
                 turret.aim();
                 intake.intake();
             } else {

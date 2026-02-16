@@ -53,7 +53,7 @@ public class blueAuto extends OpMode {
 
         telemetryDebug = new TelemetryDebug(telemetry);
         turret = new Turret(hardwareMap, follower, false);
-        shooter = new Shooter(hardwareMap, follower, false, telemetryDebug);
+        shooter = new Shooter(hardwareMap, false, telemetryDebug);
         intake = new Intake(hardwareMap);
 
         hub = hardwareMap.getAll(LynxModule.class).get(0);
@@ -140,7 +140,7 @@ public void shootThreeBalls(Timer pathTimer) {
     // 1. Keep the flywheel and turret active for the WHOLE sequence
     if (time < 6.6) {
         turret.aim();
-        shooter.accelerateFlywheel();
+        shooter.accelerate();
     } else {
         intake.stop();
         shooter.idle();

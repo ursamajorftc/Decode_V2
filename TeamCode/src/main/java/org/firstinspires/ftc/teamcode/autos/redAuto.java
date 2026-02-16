@@ -128,7 +128,7 @@
 //    //    public void shootThreeBalls (Timer pathTimer) {
 ////        if (pathTimer.getElapsedTimeSeconds() < 4.15) {
 ////            turret.aim();
-////            shooter.accelerateFlywheel();
+////            shooter.accelerate();
 ////        }
 ////        if (pathTimer.getElapsedTimeSeconds() > 4 && pathTimer.getElapsedTimeSeconds() < 4.15) {
 ////            intake.intake(intakePower); // Sends ball to shooter
@@ -156,7 +156,7 @@
 //        // 1. Keep the flywheel and turret active for the WHOLE sequence
 //        if (time < 7.5) {
 //            turret.aim();
-//            shooter.accelerateFlywheel();
+//            shooter.accelerate();
 //        } else {
 //            intake.stop();
 //            shooter.idle();
@@ -241,7 +241,7 @@ public class redAuto extends OpMode {
 
         telemetryDebug = new TelemetryDebug(telemetry);
         turret = new Turret(hardwareMap, follower, true);
-        shooter = new Shooter(hardwareMap, follower, true, telemetryDebug);
+        shooter = new Shooter(hardwareMap, true, telemetryDebug);
         intake = new Intake(hardwareMap);
 
         hub = hardwareMap.getAll(LynxModule.class).get(0);
@@ -322,7 +322,7 @@ public class redAuto extends OpMode {
     //    public void shootThreeBalls (Timer pathTimer) {
 //        if (pathTimer.getElapsedTimeSeconds() < 4.15) {
 //            turret.aim();
-//            shooter.accelerateFlywheel();
+//            shooter.accelerate();
 //        }
 //        if (pathTimer.getElapsedTimeSeconds() > 4 && pathTimer.getElapsedTimeSeconds() < 4.15) {
 //            intake.intake(intakePower); // Sends ball to shooter
@@ -351,7 +351,7 @@ public class redAuto extends OpMode {
         // 1. Keep the flywheel and turret active for the WHOLE sequence
         if (time < 10.5) {
             turret.aim();
-            shooter.accelerateFlywheel();
+            shooter.accelerate();
         } else {
             intake.stop();
             shooter.idle();

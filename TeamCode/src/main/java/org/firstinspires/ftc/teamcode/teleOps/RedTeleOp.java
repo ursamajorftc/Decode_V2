@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleOps;
 
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
-import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -41,23 +40,28 @@ public class RedTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(90.52786885245901,25,Math.PI));
+        follower.setStartingPose(new Pose(53.40327868852459, 57.3377049180328, Math.PI));
 
         for (int i = 0; i < 3; i++) {
             follower.update();
         }
-        telemetryDebug = new TelemetryDebug(telemetry);
+        telemetryDebug = new TelemetryDebug();
         intake = new Intake(hardwareMap);
         turret = new Turret(hardwareMap, follower, true);
-        shooter = new Shooter(hardwareMap, follower, true, telemetryDebug);
+        shooter = new Shooter(hardwareMap, true, telemetryDebug);
+
 
         controller2 = new GamepadEx(gamepad2);
 
         telemetryManager = PanelsTelemetry.INSTANCE.getTelemetry();
 
+
     }
 
-    public void start() {follower.startTeleOpDrive();}
+    public void start() {
+        follower.startTeleOpDrive();
+        shooter.start();
+    }
 
     @Override
     public void loop() {
@@ -72,74 +76,45 @@ public class RedTeleOp extends OpMode {
             follower.setTeleOpDrive(
                     -gamepad1.left_stick_y, // Forward/Back
                     -gamepad1.left_stick_x, // Strafe
-                    -gamepad1.right_stick_x, // Turn
+                    -gamepad1.right_stick_x * 0.5, // Turn
                     true // TRUE = Robot Centric
             );
         }
 
-        if (gamepad2.a) {
+        // --- INTAKE CONTROL ---
+        if (gamepad1.left_trigger > 0.1) {
             intake.intake();
+        } else if (gamepad1.dpad_down && !gamepad1.right_bumper) {
+            // Backspin only happens if we aren't trying to shoot
+            intake.backSpin(0.7);
         } else {
             intake.stop();
-            if (gamepad2.right_stick_y > 0) {
-                shooter.backSpin(gamepad2.right_stick_y);
-                intake.backSpin(gamepad2.right_stick_y);
-            }
-        }
-        if (gamepad2.b) {
-//            intake.transfer();
         }
 
-//        if (gamepad1.dpad_right){
-//            shooter.maxPitchServo();
-//        }else if (gamepad1.dpad_left){
-//            shooter.zeroPitchServo();
-//        }
-
-        boolean currentTriggerState = gamepad2.right_trigger > 0.1;
-        if (currentTriggerState && !previousTriggerState) {
-//            intake.transfer();
-        }
-        previousTriggerState = currentTriggerState;
-
-        if (gamepad2.right_bumper) {
+// --- SHOOTER & TURRET CONTROL ---
+        if (gamepad1.right_bumper) {
+            // Shooting takes top priority
             turret.aim();
-            shooter.accelerateFlywheel();
-//            intake.openGates();
-        } else {
+            shooter.accelerate();
+        } else if (gamepad1.dpad_down) {
+            // Backspin happens if we aren't shooting
+            shooter.backSpin(1);
             turret.idle();
-            shooter.idle();
-//            intake.idle();
-            turret.adjustTurret(gamepad2.left_stick_x);
-        }
-
-//        if (gamepad1.left_bumper) { shooter.zeroPitchServo(); }
-
-        // Uses FTCLib gamepad methods for edge detection
-        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
-            shooter.decreaseFlywheelSpeed();
-        }
-        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
-            shooter.increaseFlywheelSpeed();
-        }
-        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
-            shooter.increaseHeight();
-        }
-        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
-            shooter.decreaseHeight();
-        }
-        if (controller2.wasJustPressed(GamepadKeys.Button.X)) {
-            shooter.resetLuts();
+        } else {
+            // SAFETY: If neither button is held, the shooter MUST idle
+            shooter.stop();
+            turret.idle();
         }
 
         telemetry.addData("Turret Position", turret.getTurretPosition());
         telemetry.addData("Distance From Target", shooter.getDistanceFromTarget());
         telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());
-        telemetry.addData("Flywheel Power", shooter.getFlywheelPower());
-        telemetry.addData("Flywheel Speed", shooter.getFlywheelRPM());
         telemetry.addData("Pitch Servo Position", shooter.getPitch());
-        telemetry.addData("Voltage", shooter.getVoltage());
-        telemetryDebug.logData();
+        telemetry.addData("Current RPM", shooter.getFlywheelRPM() );
+        telemetry.addData("Current Position", shooter.getPosition());
+        for (TelemetryDebug.watcher w : telemetryDebug.watchers){
+            telemetry.addData(w.getName(), w.getValue());
+        }
     }
 
     @Override

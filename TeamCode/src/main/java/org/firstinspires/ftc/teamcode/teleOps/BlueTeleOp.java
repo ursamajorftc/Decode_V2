@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleOps;
 
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
-import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -49,7 +48,7 @@ public class BlueTeleOp extends OpMode {
         telemetryDebug = new TelemetryDebug();
         intake = new Intake(hardwareMap);
         turret = new Turret(hardwareMap, follower, false);
-        shooter = new Shooter(hardwareMap, follower, false, telemetryDebug);
+        shooter = new Shooter(hardwareMap, false, telemetryDebug);
 
 
         controller2 = new GamepadEx(gamepad2);
@@ -96,7 +95,7 @@ public class BlueTeleOp extends OpMode {
         if (gamepad1.right_bumper) {
             // Shooting takes top priority
             turret.aim();
-            shooter.accelerateFlywheel();
+            shooter.accelerate();
         } else if (gamepad1.dpad_down) {
             // Backspin happens if we aren't shooting
             shooter.backSpin(1);
@@ -111,7 +110,6 @@ public class BlueTeleOp extends OpMode {
         telemetry.addData("Distance From Target", shooter.getDistanceFromTarget());
         telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());
         telemetry.addData("Pitch Servo Position", shooter.getPitch());
-        telemetry.addData("Voltage", shooter.getVoltage());
         telemetry.addData("Current RPM", shooter.getFlywheelRPM() );
         telemetry.addData("Current Position", shooter.getPosition());
         for (TelemetryDebug.watcher w : telemetryDebug.watchers){
