@@ -53,7 +53,7 @@ public class blueTwelveBallFar extends OpMode {
         opmodeTimer.resetTimer();
 
         telemetryDebug = new TelemetryDebug(telemetry);
-        turret = new Turret(hardwareMap, follower, false);
+        turret = new Turret(hardwareMap, follower, false, telemetryDebug);
         shooter = new Shooter(hardwareMap, false, telemetryDebug);
         intake = new Intake(hardwareMap);
 

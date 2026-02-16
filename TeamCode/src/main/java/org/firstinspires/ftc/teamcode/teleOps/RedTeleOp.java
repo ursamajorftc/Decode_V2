@@ -47,7 +47,7 @@ public class RedTeleOp extends OpMode {
         }
         telemetryDebug = new TelemetryDebug();
         intake = new Intake(hardwareMap);
-        turret = new Turret(hardwareMap, follower, true);
+        turret = new Turret(hardwareMap, follower, true, telemetryDebug);
         shooter = new Shooter(hardwareMap, true, telemetryDebug);
 
 
@@ -66,7 +66,6 @@ public class RedTeleOp extends OpMode {
     @Override
     public void loop() {
         follower.update();
-        intake.update();
         turret.update();
         shooter.update();
         controller2.readButtons();
