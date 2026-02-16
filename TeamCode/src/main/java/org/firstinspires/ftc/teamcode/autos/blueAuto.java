@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Turret;
 @Autonomous(name = "Blue Auto", group = "Competition Autos")
 @Configurable
 public class blueAuto extends OpMode {
-    boolean hasShoot = false;
+    boolean hasShot = false;
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
     private Timer pathTimer, opmodeTimer;
@@ -88,7 +88,7 @@ public class blueAuto extends OpMode {
     }
 
     @Configurable
-    public static class Paths {
+    private static class Paths {
 
         public static PathChain Path1;
         public static PathChain Path2;
@@ -112,7 +112,7 @@ public class blueAuto extends OpMode {
             case 1:
 //                pathTimer.resetTimer();
                 shootThreeBalls(pathTimer);
-               if (hasShoot) {
+               if (hasShot) {
                     follower.followPath(paths.Path1);
                     setPathState(pathState + 1);
                }
@@ -130,7 +130,7 @@ public class blueAuto extends OpMode {
     public void setPathState(int pathState) {
         this.pathState = pathState;
         pathTimer.resetTimer();
-        hasShoot = false;
+        hasShot = false;
     }
 public void shootThreeBalls(Timer pathTimer) {
 //    pathTimer.resetTimer();
@@ -169,12 +169,12 @@ public void shootThreeBalls(Timer pathTimer) {
 //        intake.intake(intakePower);
 //    }
     if (time >= 5.6){
-        intake.idle();
+        intake.stop();
         shooter.idle();
         turret.idle();
-        hasShoot = true;
+        hasShot = true;
     } else {
-        hasShoot = false;
+        hasShot = false;
     }
 }
 }

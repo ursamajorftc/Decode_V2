@@ -379,7 +379,7 @@ public class redAuto extends OpMode {
         else if (time >= 8.4 && time < 10.9) {
             intake.intake(intakePower);
         } if (time >= 12){
-            intake.idle();
+            intake.stop();
             shooter.idle();
             turret.idle();
             hasShoot = true;

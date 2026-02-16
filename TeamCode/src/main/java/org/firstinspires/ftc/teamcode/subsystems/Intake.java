@@ -9,16 +9,16 @@ import com.qualcomm.robotcore.hardware.Servo;
 @Configurable
 public class Intake {
     DcMotorEx intakeMotor;
-    DcMotorEx transferMotor;
+//    DcMotorEx transferMotor;
     Timer transferTimer = new Timer();
 
-    Servo rightGateServo;
-    Servo leftGateServo;
-
-    public static double rightGateServoOpen = 0;
-    public static double rightGateServoClosed = 1;
-    public static double leftGateServoOpen = 0;
-    public static double leftGateServoClosed = 1;
+//    Servo rightGateServo;
+//    Servo leftGateServo;
+//
+//    public static double rightGateServoOpen = 0;
+//    public static double rightGateServoClosed = 1;
+//    public static double leftGateServoOpen = 0;
+//    public static double leftGateServoClosed = 1;
 
     private double time = 1;
 
@@ -29,19 +29,19 @@ public class Intake {
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
         intakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-        transferMotor = hardwareMap.get(DcMotorEx.class, "transferMotor");
-        transferMotor.setDirection(DcMotorEx.Direction.REVERSE);
-        transferMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+//        transferMotor = hardwareMap.get(DcMotorEx.class, "transferMotor");
+//        transferMotor.setDirection(DcMotorEx.Direction.REVERSE);
+//        transferMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
-        rightGateServo = hardwareMap.get(Servo.class, "rightGateServo");
-        leftGateServo = hardwareMap.get(Servo.class, "leftGateServo");
+//        rightGateServo = hardwareMap.get(Servo.class, "rightGateServo");
+//        leftGateServo = hardwareMap.get(Servo.class, "leftGateServo");
     }
 
     public void intake () {
         intakeMotor.setPower(1.0);
     }
     public void intake (double power) {intakeMotor.setPower(power);}
-    public void transfer () {transferMotor.setPower(1.0);}
+//    public void transfer () {transferMotor.setPower(1.0);}
 
     /**
      * Transfers ball to shooter
@@ -50,7 +50,7 @@ public class Intake {
 
     public void stop () {
         intakeMotor.setPower(0);
-        transferMotor.setPower(0);
+//        transferMotor.setPower(0);
     }
 
     public void backSpin (double power) {
@@ -58,15 +58,15 @@ public class Intake {
 
     }
 
-    public void openGates(){
-        rightGateServo.setPosition(rightGateServoOpen);
-        leftGateServo.setPosition(leftGateServoOpen);
-    }
-
-    public void idle (){
-        rightGateServo.setPosition(rightGateServoClosed);
-        leftGateServo.setPosition(leftGateServoClosed);
-    }
+//    public void openGates(){
+//        rightGateServo.setPosition(rightGateServoOpen);
+//        leftGateServo.setPosition(leftGateServoOpen);
+//    }
+//
+//    public void idle (){
+//        rightGateServo.setPosition(rightGateServoClosed);
+//        leftGateServo.setPosition(leftGateServoClosed);
+//    }
 
     /**
      * Will constantly check to see if transfer timer is under a threshold to send ball to shooter.

@@ -41,7 +41,7 @@ public class BlueTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(56.94426229508197, 101.48196721311474, Math.PI));
+        follower.setStartingPose(new Pose(53.40327868852459, 57.3377049180328, Math.PI));
 
         for (int i = 0; i < 3; i++) {
             follower.update();
@@ -82,71 +82,37 @@ public class BlueTeleOp extends OpMode {
             );
         }
 
+        // --- INTAKE CONTROL ---
         if (gamepad1.left_trigger > 0.1) {
             intake.intake();
+        } else if (gamepad1.dpad_down && !gamepad1.right_bumper) {
+            // Backspin only happens if we aren't trying to shoot
+            intake.backSpin(0.7);
         } else {
             intake.stop();
-            if (gamepad1.dpad_down) {
-                shooter.backSpin(1);
-                intake.backSpin(0.7);
-            }
-        }
-        if (gamepad1.b) {
-            intake.transfer();
         }
 
-//        if (gamepad1.dpad_right){
-//            shooter.maxPitchServo();
-//        }else if (gamepad1.dpad_left){
-//            shooter.zeroPitchServo();
-//        }
-
-//        boolean currentTriggerState = gamepad2.right_trigger > 0.1;
-//        if (currentTriggerState && !previousTriggerState) {
-//            intake.transfer();
-//        }
-//        previousTriggerState = currentTriggerState;
-
+// --- SHOOTER & TURRET CONTROL ---
         if (gamepad1.right_bumper) {
+            // Shooting takes top priority
             turret.aim();
             shooter.accelerateFlywheel();
-//            intake.openGates();
-        } else {
+        } else if (gamepad1.dpad_down) {
+            // Backspin happens if we aren't shooting
+            shooter.backSpin(1);
             turret.idle();
-            shooter.idle();
-//            intake.idle();
-            turret.adjustTurret(gamepad2.left_stick_x);
+        } else {
+            // SAFETY: If neither button is held, the shooter MUST idle
+            shooter.stop();
+            turret.idle();
         }
-
-//        if (gamepad1.left_bumper) { shooter.zeroPitchServo(); }
-
-        // Uses FTCLib gamepad methods for edge detection
-        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
-            shooter.decreaseFlywheelSpeed();
-        }
-        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
-            shooter.increaseFlywheelSpeed();
-        }
-        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
-            shooter.increaseHeight();
-        }
-        if (controller2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
-            shooter.decreaseHeight();
-        }
-        if (controller2.wasJustPressed(GamepadKeys.Button.X)) {
-            shooter.resetLuts();
-        }
-
-//        if(gamepad1.y){
-//            telemetryDebug.createWatcher("Test Watcher: ", "Nirav is a poopy idiot");
-//        }
 
         telemetry.addData("Turret Position", turret.getTurretPosition());
         telemetry.addData("Distance From Target", shooter.getDistanceFromTarget());
         telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());
         telemetry.addData("Pitch Servo Position", shooter.getPitch());
         telemetry.addData("Voltage", shooter.getVoltage());
-        telemetry.addData("Currnet RPM", shooter.getFlywheelRPM() );
+        telemetry.addData("Current RPM", shooter.getFlywheelRPM() );
         telemetry.addData("Current Position", shooter.getPosition());
         for (TelemetryDebug.watcher w : telemetryDebug.watchers){
             telemetry.addData(w.getName(), w.getValue());

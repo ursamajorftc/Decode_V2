@@ -5,6 +5,8 @@ import com.arcrobotics.ftclib.util.InterpLUT;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -27,14 +29,15 @@ public class Shooter {
     private double lastTime = 0;
     private double filteredRPM = 0;
     Servo light;
+    Limelight3A limelight;
 
     LynxModule hub;
 
-    final Pose REDTARGET = new Pose(137.0, 143.0);
-    final Pose BLUETARGET = new Pose (6.0, 143.0);
+    final Pose REDTARGET = new Pose(143.0, 137.0);
+    final Pose BLUETARGET = new Pose (143.0, 6.0);
 
     // TODO: Tune this!
-    final PIDFController flywheelPIDF  = new PIDFController(0.0005, 0.00005, 0.000003, 0.00022);
+    final PIDFController flywheelPIDF  = new PIDFController(0.002, 0.00005, 0.000003, 0.00022);
     private double[] errorBuffer = new double[20]; // Stores last 20 errors
     private int bufferIndex = 0; // Tracks where we are in the array
     private double rollingErrorAverage = 0;
@@ -58,6 +61,8 @@ public class Shooter {
         flywheelMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         light = hardwareMap.get(Servo.class, "led");
 
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.start();
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
         this.follower = follower;
@@ -80,17 +85,77 @@ public class Shooter {
      * Called every loop to calculate distance from target
      */
     public void update () {
+//        double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
+//        double targetY = (isRed ? REDTARGET.getY() : BLUETARGET.getY());
+//
+//        double robotX = follower.getPose().getX();
+//        double robotY = follower.getPose().getY();
+//
+//        telemetryDebug.createWatcher("Robot X", robotX);
+//        telemetryDebug.createWatcher("Robot Y", robotY);
+//
+//        double dx = targetX - robotX;
+//        double dy = targetY - robotY;
+//
+//        if (distanceFromTarget >= 0.0) {
+//            Vector robotVelocityVector = follower.getVelocity();
+//            double vx = robotVelocityVector.getXComponent(); // Forward velocity
+//            double vy = robotVelocityVector.getYComponent(); // Strafe velocity
+//
+//            // 2. Rotate to Field-Centric Velocity
+//            // Rotation matrix: x' = x cos θ - y sin θ, y' = x sin θ + y cos θ
+//            double robotHeading = follower.getHeading();
+//            double vFieldX = vx * Math.cos(robotHeading) - vy * Math.sin(robotHeading);
+//            double vFieldY = vx * Math.sin(robotHeading) + vy * Math.cos(robotHeading);
+//            Vector fieldVelocityVector = new Vector(Math.hypot(vFieldX, vFieldY), Math.atan2(vFieldY, vFieldX));
+//
+//            Vector vectorToTarget = new Vector(new Pose(
+//                    dx / distanceFromTarget,
+//                    dy / distanceFromTarget));
+//
+//            double velocityToTarget = fieldVelocityVector.dot(vectorToTarget);
+//
+//            telemetryDebug.createWatcher("Velocity to Target", velocityToTarget);
+//
+//            // TODO: Tune the coefficient
+//            double compensationCoefficient = 0.0;
+//            compensatedDistance = distanceFromTarget + (compensationCoefficient * velocityToTarget);
+//        } else {
+//            compensatedDistance = distanceFromTarget;
+//        }
+
+        if((flywheelPIDF.getSetPoint() != 0 && Math.abs(flywheelPIDF.getPositionError()) < 100)) {
+            light.setPosition(0.555);
+        } else {
+            light.setPosition(0.29);
+        }
+
+    }
+
+    /**
+     * Accelerates flywheel using Velocity PID based on distance from target
+     */
+    public void accelerateFlywheel () {
+        if (!limelight.isRunning()) {
+            limelight.start();
+        }
+
+        LLResult result = limelight.getLatestResult();
+        if (result != null && result.isValid()) {
+            distanceFromTarget = 87.78147 * (Math.pow(result.getTa(), -0.41445));
+        }
+
         double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
         double targetY = (isRed ? REDTARGET.getY() : BLUETARGET.getY());
 
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
 
+        telemetryDebug.createWatcher("Robot X", robotX);
+        telemetryDebug.createWatcher("Robot Y", robotY);
+
         double dx = targetX - robotX;
         double dy = targetY - robotY;
-
-        // Standard Euclidean distance calculation
-        distanceFromTarget = Math.hypot(dx, dy);
 
         if (distanceFromTarget >= 0.0) {
             Vector robotVelocityVector = follower.getVelocity();
@@ -110,35 +175,29 @@ public class Shooter {
 
             double velocityToTarget = fieldVelocityVector.dot(vectorToTarget);
 
+            telemetryDebug.createWatcher("Velocity to Target", velocityToTarget);
+
             // TODO: Tune the coefficient
-            double compensationCoefficient = 0.0;
+            double compensationCoefficient = 0.5;
             compensatedDistance = distanceFromTarget + (compensationCoefficient * velocityToTarget);
         } else {
             compensatedDistance = distanceFromTarget;
         }
 
-        if(Math.abs(flywheelPIDF.getPositionError()) < 100) {
-            light.setPosition(0.555);
-        } else {
-            light.setPosition(0.29);
-        }
+        telemetryDebug.createWatcher("Compensated Distance", compensatedDistance);
 
-    }
 
-    /**
-     * Accelerates flywheel using Velocity PID based on distance from target
-     */
-    public void accelerateFlywheel () {
-        // Retrieves Targets from Ballistic Class
-//        double targetRPM = ballistics.calculateFlywheelSpeed(compensatedDistance);
-//        double targetPitch = ballistics.calculatePitch(compensatedDistance);
+
         if (!hasAccelerated) {hasAccelerated = true;}
+
+
 
         // Calculate power based on velocity error
         // TODO: Revert back to interpolated values once tuned
         double currentRPM = getFlywheelRPM();
         // y=-2083.85427+1072.08529 * ln(x)
-        double targetRPM = -2278 + (1125 * Math.log(compensatedDistance));
+//        double targetRPM = -2278 + (1125 * Math.log(compensatedDistance));
+        double targetRPM = 9.8 * compensatedDistance+1795;
         double power = flywheelPIDF.calculate(currentRPM, targetRPM);
 
         flywheelMotorRight.setPower(power);
@@ -149,8 +208,8 @@ public class Shooter {
         telemetryDebug.createWatcher("Error", flywheelPIDF.getPositionError());
         updateErrorAverage(flywheelPIDF.getPositionError());
 //        pitchServo.setPosition(ballistics.calculatePitch(compensatedDistance)); //0 highest, 1 lowest
-        // y=-0.00468917x+1.02871
-        pitchServo.setPosition(-0.00468917*compensatedDistance+0.87);
+        double targetPitch = Math.max(0.0, Math.min(0.86, -0.00468917*compensatedDistance+0.87));
+        pitchServo.setPosition(targetPitch);
         // 0.86 is the bottom max
 
     }
@@ -176,10 +235,33 @@ public class Shooter {
     public void idle () {
 //        flywheelMotorRight.setPower(0);
 //        flywheelMotorLeft.setPower(0);
-        double currentRPM = getFlywheelRPM();
-        double power = flywheelPIDF.calculate(currentRPM, 0);
-        flywheelMotorRight.setPower(hasAccelerated ? power : 0);
-        flywheelMotorLeft.setPower(hasAccelerated ? power : 0);
+        double currentRPM = getFlywheelRPM(false);
+//        if (currentRPM >=0 ) {
+//            double power = flywheelPIDF.calculate(currentRPM, 0);
+//            flywheelMotorRight.setPower(hasAccelerated ? power : 0);
+//            flywheelMotorLeft.setPower(hasAccelerated ? power : 0);
+//        } else {
+//            flywheelMotorRight.setPower(0);
+//            flywheelMotorLeft.setPower(0);
+//        }
+
+        if (Math.abs(currentRPM) < 20) {
+            flywheelMotorRight.setPower(0);
+            flywheelMotorLeft.setPower(0);
+        } else {
+            double power = flywheelPIDF.calculate(currentRPM, 0);
+            flywheelMotorRight.setPower(hasAccelerated ? power : 0);
+            flywheelMotorLeft.setPower(hasAccelerated ? power : 0);
+        }
+
+        light.setPosition(0.29);
+        limelight.pause();
+    }
+    public void stop () {
+        limelight.pause();
+        flywheelMotorRight.setPower(0);
+        flywheelMotorLeft.setPower(0);
+        light.setPosition(0.29);
     }
 
     public void backSpin (double power) {
@@ -284,6 +366,37 @@ public class Shooter {
 
         return Math.abs(filteredRPM);
     }
+
+    public double getFlywheelRPM(boolean absVal) {
+        // 1. Refresh current values EVERY loop
+        double currentPosition = flywheelMotorRight.getCurrentPosition();
+        double currentTime = System.nanoTime() / 1E9;
+
+        // 2. Calculate change in time
+        double dt = currentTime - lastTime;
+
+        // Safety check: if the loop is too fast, don't divide by zero
+        if (dt < 0.0001) return filteredRPM;
+
+        // 3. Calculate velocity
+        double deltaTicks = currentPosition - lastPosition;
+        double ticksPerSecond = deltaTicks / dt;
+        double rawRPM = (ticksPerSecond / 8192.0) * 60.0;
+
+        // 4. Low Pass Filter (Smooths the jitter)
+        filteredRPM = (0.2 * rawRPM) + (0.8 * filteredRPM);
+
+        // 5. Save current values as "last" values for the NEXT loop
+        lastPosition = currentPosition;
+        lastTime = currentTime;
+
+        if (absVal) {
+            return Math.abs(filteredRPM);
+        } else {
+            return filteredRPM;
+        }
+    }
+
     public double getDistanceFromTarget () { return distanceFromTarget; }
     public double getFlywheelPower() { return flywheelMotorRight.getPower(); }
     public double getPitch () { return pitchServo.getPosition(); }

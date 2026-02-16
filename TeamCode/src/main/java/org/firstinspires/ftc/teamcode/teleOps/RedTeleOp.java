@@ -87,7 +87,7 @@ public class RedTeleOp extends OpMode {
             }
         }
         if (gamepad2.b) {
-            intake.transfer();
+//            intake.transfer();
         }
 
 //        if (gamepad1.dpad_right){
@@ -98,7 +98,7 @@ public class RedTeleOp extends OpMode {
 
         boolean currentTriggerState = gamepad2.right_trigger > 0.1;
         if (currentTriggerState && !previousTriggerState) {
-            intake.transfer();
+//            intake.transfer();
         }
         previousTriggerState = currentTriggerState;
 
