@@ -292,7 +292,7 @@ public class blueTwelveBallClose extends OpMode {
     }
     @Override
     public void stop () {
-        Datavault.finalAutoPose = follower.getPose();
+        Datavault.finalPose = follower.getPose();
         Datavault.turretPosition = turret.getTurretPosition();
     }
 }

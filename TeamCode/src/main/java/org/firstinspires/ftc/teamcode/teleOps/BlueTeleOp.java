@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleOps;
 
-import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import static java.lang.Math.toRadians;
+
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -39,8 +40,8 @@ public class BlueTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(53.40327868852459, 57.3377049180328, Math.PI));
-//        follower.setStartingPose(Datavault.finalAutoPose);
+        follower.setStartingPose(new Pose(66.15081967213115, 77.87540983606557, toRadians(135)));
+//        follower.setStartingPose(Datavault.finalPose);
 
         for (int i = 0; i < 3; i++) {
             follower.update();
@@ -101,6 +102,12 @@ public class BlueTeleOp extends OpMode {
             turret.idle();
         }
 
+        if (gamepad1.dpad_left) {
+            shooter.adjustCompensationCoefficient(-0.1);
+        } else if (gamepad1.dpad_right) {
+            shooter.adjustCompensationCoefficient(0.1);
+        }
+
         telemetry.addData("Turret Position", turret.getTurretPosition());
         telemetry.addData("Distance From Target", shooter.getDistanceFromTarget());
         telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());
@@ -115,5 +122,7 @@ public class BlueTeleOp extends OpMode {
     @Override
     public void stop () {
         turret.stop();
+        Datavault.turretPosition = turret.getTurretPosition();
+        Datavault.finalPose = follower.getPose();
     }
 }

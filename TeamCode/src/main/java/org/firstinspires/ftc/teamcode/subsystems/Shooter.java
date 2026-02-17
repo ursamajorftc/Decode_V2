@@ -29,7 +29,7 @@ public class Shooter {
     private double filteredVelocity = 0.0;
     private double filteredRPM = 0;
     private double filteredDistance = 0;
-    private double compensationCoefficient = 0.3; // TODO: Tune this!!
+    private double compensationCoefficient = 0.0; // TODO: Tune this!!
     final PIDFController flywheelPIDF = new PIDFController(0.002, 0.00005, 0.000003, 0.00022);
     private double[] errorBuffer = new double[20]; // Stores last 20 errors
     private int bufferIndex = 0; // Tracks where we are in the array
@@ -73,6 +73,7 @@ public class Shooter {
      */
     public void update() {
         light.setPosition(isAccelerated() ? 0.57 : 0.29);
+        telemetryDebug.createWatcher("Shooter Compensation Coefficient", compensationCoefficient);
     }
 
     /**
@@ -84,10 +85,11 @@ public class Shooter {
         LLResult result = limelight.getLatestResult();
         if (result != null && result.isValid()) {
             double rawDistance = 87.78147 * (Math.pow(result.getTa(), -0.41445));
-            filteredDistance = filteredDistance == 0 ? rawDistance : (0.2 * rawDistance) + (0.8 * filteredDistance);
+            filteredDistance = filteredDistance == 0 ? rawDistance : (0.6 * rawDistance) + (0.4 * filteredDistance);
             if (filteredDistance != 0 && lastDistance == 0) {
                 lastDistance = filteredDistance;
             }
+            compensationCoefficient = (getVelocityToTarget(filteredDistance) > 0) ? 1.4 : 3.5;
             compensatedDistance = filteredDistance + (getVelocityToTarget(filteredDistance) * compensationCoefficient);
             distanceFromTarget = filteredDistance;
         } else {
@@ -115,7 +117,7 @@ public class Shooter {
 
         updateErrorAverage(flywheelPIDF.getPositionError());
         double targetPitch = Math.max(0.0, Math.min(0.86, -0.00468917 * compensatedDistance + 0.87));
-        pitchServo.setPosition(targetPitch); // 0.86 is the bottom max
+        pitchServo.setPosition((Math.abs(targetPitch - pitchServo.getPosition()) > 0.2) ? targetPitch : pitchServo.getPosition()); // 0.86 is the bottom max
     }
 
     public void updateErrorAverage(double currentError) {
@@ -227,7 +229,7 @@ public class Shooter {
 
 
     public double getVelocityToTarget(double distanceFromTarget) {
-        double alpha = 0.2; // lower = smoother, more lag
+        double alpha = 0.5; // lower = smoother, more lag
         long now = System.nanoTime();
 
         if (lastTimeV == 0) {
@@ -264,5 +266,8 @@ public class Shooter {
 
     public double getPosition() {
         return flywheelMotorRight.getCurrentPosition();
+    }
+    public void adjustCompensationCoefficient (double value) {
+        compensationCoefficient += value;
     }
 }

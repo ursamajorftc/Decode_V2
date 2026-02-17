@@ -39,13 +39,12 @@ public class Turret {
 
     // TODO: Tune these. Expect very different P values!
     final PIDFController limelightPIDF = new PIDFController(0.015, 0.014, 0.00015, 0.005);
-    final PIDFController odometryPIDF = new PIDFController(0.0, 0.0, 0.0, 0.0);
+    final PIDFController odometryPIDF = new PIDFController(0.6, 0.2, 0.0, 0.005);
 
     double relativeTargetHeading;
     boolean isRed;
 
     /**
-     *
      * @param hardwareMap Used to retrieve hardware from configuration file in driver hub
      * @param follower    Used as fallback to determine distance to target using odometry
      * @param isRed       Set per alliance color
@@ -79,9 +78,6 @@ public class Turret {
     public void update() {
         // Calculate turret angle relative to the robot chassis
         turretPosition = AngleUnit.normalizeRadians(turretEncoder.getCurrentPosition() * RADIANSPERTICK);
-
-        Vector velocityVector = new Vector();
-        velocityVector = follower.getVelocity();
 
         // Get target coordinates
         double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
@@ -120,7 +116,7 @@ public class Turret {
 
         // Convert angular velocity to linear velocity aurafully
         double turretRadius = 4.205;
-        double angularVelocity = follower.getAngularVelocity() * turretRadius;
+        double angularVelocity = -follower.getAngularVelocity() * turretRadius;
         telemetryDebug.createWatcher("Angular Velocity", angularVelocity);
 
         // TODO: Tune this
@@ -148,11 +144,9 @@ public class Turret {
         } else {
             // Fallback to Odometry
             // We want turretPosition to match relativeTargetHeading
-            // TODO: Tune this
-            double compensationCoefficient = 0.0;
-            double targetPosition = AngleUnit.normalizeRadians(relativeTargetHeading + compensation * compensationCoefficient);
+            double targetPosition = AngleUnit.normalizeRadians(relativeTargetHeading);
             double power = odometryPIDF.calculate(turretPosition, targetPosition);
-            power = normalizePower(power);
+            power = normalizePower(-power);
 
             rightTurretServo.setPower(power);
             leftTurretServo.setPower(power);
@@ -187,7 +181,9 @@ public class Turret {
     }
 
     private double normalizePower(double power) {
-        if (turretPosition >= Math.PI / 2 || turretPosition <= -Math.PI / 2) {
+        if (turretPosition >= Math.PI / 2 && power < 0) {
+            return 0;
+        } else if (turretPosition <= -Math.PI / 4 && power > 0) {
             return 0;
         } else {
             return Math.max(-1, Math.min(1, power));
@@ -197,7 +193,8 @@ public class Turret {
     public double getTurretPosition() {
         return AngleUnit.normalizeRadians(turretEncoder.getCurrentPosition() * RADIANSPERTICK);
     }
-    public void setTurretPosition (double turretPosition) {
+
+    public void setTurretPosition(double turretPosition) {
         this.turretPosition = turretPosition;
     }
 
