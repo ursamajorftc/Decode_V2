@@ -89,7 +89,14 @@ public class Shooter {
             if (filteredDistance != 0 && lastDistance == 0) {
                 lastDistance = filteredDistance;
             }
-            compensationCoefficient = (getVelocityToTarget(filteredDistance) > 0) ? 1.4 : 3.5;
+            if (filteredVelocity > 10) {
+                compensationCoefficient = 1.4;
+            } else if (filteredVelocity < 10) {
+                compensationCoefficient = 4;
+            } else {
+                compensationCoefficient = 0;
+            }
+            
             compensatedDistance = filteredDistance + (getVelocityToTarget(filteredDistance) * compensationCoefficient);
             distanceFromTarget = filteredDistance;
         } else {

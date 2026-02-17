@@ -108,6 +108,10 @@ public class BlueTeleOp extends OpMode {
             shooter.adjustCompensationCoefficient(0.1);
         }
 
+        if (gamepad1.b) {
+            turret.resetEncoder();
+        }
+
         telemetry.addData("Turret Position", turret.getTurretPosition());
         telemetry.addData("Distance From Target", shooter.getDistanceFromTarget());
         telemetry.addData("Relative Target Angle", turret.getRelativeTargetHeading());

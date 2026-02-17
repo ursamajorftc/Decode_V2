@@ -201,5 +201,9 @@ public class Turret {
     public double getRelativeTargetHeading() {
         return relativeTargetHeading;
     }
+    public void resetEncoder() {
+        turretEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
 
 }
