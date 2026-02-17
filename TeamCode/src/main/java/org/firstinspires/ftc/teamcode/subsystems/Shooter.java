@@ -44,11 +44,11 @@ public class Shooter {
      */
     public Shooter(HardwareMap hardwareMap, boolean isRed, TelemetryDebug debug) {
         flywheelMotorRight = hardwareMap.get(DcMotorEx.class, "rightFlywheelMotor");
-        flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheelMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheelMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         flywheelMotorLeft = hardwareMap.get(DcMotorEx.class, "leftFlywheelMotor");
-        flywheelMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        flywheelMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         flywheelMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         light = hardwareMap.get(Servo.class, "led");
 
@@ -91,9 +91,9 @@ public class Shooter {
             }
             filteredVelocity = getVelocityToTarget(filteredDistance);
             if (filteredVelocity > 10) {
-                compensationCoefficient = 1.4;
+                compensationCoefficient = 9; //Coefficient is tuned by driving backward
             } else if (filteredVelocity < -10) {
-                compensationCoefficient = 4;
+                compensationCoefficient = 3; //Coefficient is tuned by driving forward
             } else {
                 compensationCoefficient = 0;
             }

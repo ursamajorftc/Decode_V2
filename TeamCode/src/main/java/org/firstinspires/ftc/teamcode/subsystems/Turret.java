@@ -135,7 +135,7 @@ public class Turret {
 
         if (llResult != null && llResult.isValid()) {
             // TODO: Tune this
-            double compensationCoefficient = 0.0;
+            double compensationCoefficient = -1.0; //Coefficient is -1.1 left, Coefficient is () Right
             double power = limelightPIDF.calculate(llResult.getTx(), 0 + compensation * compensationCoefficient);
             power = normalizePower(power);
             isLLgetting = power;

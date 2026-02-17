@@ -40,7 +40,7 @@ public class BlueTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(66.15081967213115, 77.87540983606557, toRadians(135)));
+        follower.setStartingPose(new Pose(76.53770491803279,15.16065573770495, toRadians(90)));
 //        follower.setStartingPose(Datavault.finalPose);
 
         for (int i = 0; i < 3; i++) {
@@ -98,6 +98,7 @@ public class BlueTeleOp extends OpMode {
             turret.idle();
         } else {
             // SAFETY: If neither button is held, the shooter MUST idle
+            //shooter.stop();
             shooter.stop();
             turret.idle();
         }
