@@ -89,14 +89,16 @@ public class Shooter {
             if (filteredDistance != 0 && lastDistance == 0) {
                 lastDistance = filteredDistance;
             }
+            filteredVelocity = getVelocityToTarget(filteredDistance);
             if (filteredVelocity > 10) {
                 compensationCoefficient = 1.4;
-            } else if (filteredVelocity < 10) {
+            } else if (filteredVelocity < -10) {
                 compensationCoefficient = 4;
             } else {
                 compensationCoefficient = 0;
             }
-            
+            telemetryDebug.createWatcher("Filtered Velocity", filteredVelocity);
+
             compensatedDistance = filteredDistance + (getVelocityToTarget(filteredDistance) * compensationCoefficient);
             distanceFromTarget = filteredDistance;
         } else {
