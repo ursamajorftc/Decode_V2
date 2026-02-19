@@ -115,7 +115,7 @@ public class Shooter {
 
         // Calculate power based on velocity error
         double currentRPM = getFlywheelRPM();
-        double targetRPM = 9.8 * compensatedDistance + 1795;
+        double targetRPM = 9.77 * compensatedDistance + 1815;
         double power = flywheelPIDF.calculate(currentRPM, targetRPM);
 
         flywheelMotorRight.setPower(power);
@@ -125,8 +125,28 @@ public class Shooter {
         telemetryDebug.createWatcher("Error", flywheelPIDF.getPositionError());
 
         updateErrorAverage(flywheelPIDF.getPositionError());
-        double targetPitch = Math.max(0.0, Math.min(0.86, -0.00468917 * compensatedDistance + 0.87));
-        pitchServo.setPosition((Math.abs(targetPitch - pitchServo.getPosition()) > 0.2) ? targetPitch : pitchServo.getPosition()); // 0.86 is the bottom max
+        double targetPitch = Math.max(0.0, Math.min(0.86, -0.005 * compensatedDistance + 0.72));
+        pitchServo.setPosition((Math.abs(targetPitch - pitchServo.getPosition()) > 0.02) ? targetPitch : pitchServo.getPosition()); // 0.86 is the bottom max
+    }
+    public void accelerate (double givenDistance) {
+
+        if (!hasAccelerated) {
+            hasAccelerated = true;
+        }
+
+        double currentRPM = getFlywheelRPM();
+        double targetRPM = 9.77 * givenDistance + 1800;
+        double power = flywheelPIDF.calculate(currentRPM, targetRPM);
+
+        flywheelMotorRight.setPower(power);
+        flywheelMotorLeft.setPower(power);
+
+        telemetryDebug.createWatcher("Flywheel Power: ", power);
+        telemetryDebug.createWatcher("Error", flywheelPIDF.getPositionError());
+
+        updateErrorAverage(flywheelPIDF.getPositionError());
+        double targetPitch = Math.max(0.0, Math.min(0.86, -0.005 * givenDistance + 0.72));
+        pitchServo.setPosition((Math.abs(targetPitch - pitchServo.getPosition()) > 0.02) ? targetPitch : pitchServo.getPosition()); // 0.86 is the bottom max
     }
 
     public void updateErrorAverage(double currentError) {
@@ -278,5 +298,8 @@ public class Shooter {
     }
     public void adjustCompensationCoefficient (double value) {
         compensationCoefficient += value;
+    }
+    public boolean isReady () {
+        return rollingErrorAverage <= 20;
     }
 }

@@ -10,6 +10,7 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
@@ -20,6 +21,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.utilities.Datavault;
 import org.firstinspires.ftc.teamcode.utilities.TelemetryDebug;
 
+@Disabled
 @Autonomous(name = "Blue Auto", group = "Competition Autos")
 @Configurable
 public class blueAuto extends OpMode {
