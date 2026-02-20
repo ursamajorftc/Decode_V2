@@ -17,13 +17,13 @@ import org.firstinspires.ftc.teamcode.utilities.Datavault;
 import org.firstinspires.ftc.teamcode.utilities.TelemetryDebug;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
-@Autonomous(name = "Blue Twelve Ball Close", group = "Competition Autos")
-public class blueTwelveBallClose extends OpMode {
+@Autonomous(name = "Red Nine Ball Close", group = "Competition Autos")
+public class redNineBallClose extends OpMode {
     public Follower follower; // Pedro Pathing follower instance
     boolean hasShot = false;
     private Timer pathTimer, opmodeTimer;
     private int pathState = 1; // Current autonomous path state (state machine)
-    private blueTwelveBallClose.Paths paths; // Paths defined in the Paths class
+    private redNineBallClose.Paths paths; // Paths defined in the Paths class
     private Turret turret;
     private Shooter shooter;
     private Intake intake;
@@ -32,7 +32,7 @@ public class blueTwelveBallClose extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(30.033, 134.767, Math.toRadians(144)));
+        follower.setStartingPose(new Pose(144-30.033, 134.767, Math.toRadians(36)));
 
         paths = new Paths(follower); // Build paths
 
@@ -42,8 +42,8 @@ public class blueTwelveBallClose extends OpMode {
         opmodeTimer.resetTimer();
 
         telemetryDebug = new TelemetryDebug(telemetry);
-        turret = new Turret(hardwareMap, follower, false, telemetryDebug);
-        shooter = new Shooter(hardwareMap, false, telemetryDebug);
+        turret = new Turret(hardwareMap, follower, true, telemetryDebug);
+        shooter = new Shooter(hardwareMap, true, telemetryDebug);
         intake = new Intake(hardwareMap);
     }
 
@@ -75,20 +75,20 @@ public class blueTwelveBallClose extends OpMode {
     public int autonomousPathUpdate() {
         switch (pathState) {
             case 1: // 1. DO PATH 1
-                shooter.accelerate(76.3);
+                shooter.accelerate(74);
                 follower.followPath(paths.Path1);
                 setPathState(2);
                 break;
 
             case 2: // WAIT FOR PATH 1
-                shooter.accelerate(76.3);
+                shooter.accelerate(74);
                 if (!follower.isBusy()) {
                     setPathState(3);
                 }
                 break;
 
             case 3: // 2. SHOOT THREE BALLS
-                shootThreeBalls(pathTimer, false, 76.3); // true = long shoot (3.5s)
+                shootThreeBalls(pathTimer, false, 74); // true = long shoot (3.5s)
                 if (hasShot) {
                     setPathState(4);
                 }
@@ -132,13 +132,13 @@ public class blueTwelveBallClose extends OpMode {
                 break;
 
             case 10: // 6. DO PATH 5
-                shooter.accelerate(76.3);
+                shooter.accelerate(70);
                 follower.followPath(paths.Path5);
                 setPathState(105);
                 break;
 
             case 105:
-                shooter.accelerate(76.3);
+                shooter.accelerate(70);
                 if (!follower.isBusy()) {
                     setPathState(11);
                 }
@@ -146,10 +146,10 @@ public class blueTwelveBallClose extends OpMode {
 
             case 11: // WAIT FOR PATH 5
                 if (pathTimer.getElapsedTimeSeconds() > 2.0) {
-                    shootThreeBalls(pathTimer, false, 76.3); // false = quick shoot (1.0s)
+                    shootThreeBalls(pathTimer, false, 70); // false = quick shoot (1.0s)
                 } else {
-                    shooter.accelerate(76.3);
-                    turret.aim();
+                    shooter.accelerate(70);
+                    turret.aimWithoutCompensation();
                 }
 
                 if (hasShot) {
@@ -181,22 +181,22 @@ public class blueTwelveBallClose extends OpMode {
                 }
                 break;
             case 16:
-                shooter.accelerate(76.3);
+                shooter.accelerate(70);
                 follower.followPath(paths.Path8);
                 setPathState(17);
                 break;
             case 17:
-                shooter.accelerate(76.3);
+                shooter.accelerate(70);
                 if (!follower.isBusy()) {
                     setPathState(18);
                 }
                 break;
             case 18:
                 if (pathTimer.getElapsedTimeSeconds() > 2.0) {
-                    shootThreeBalls(pathTimer, false, 76.3); // false = quick shoot (1.0s)
+                    shootThreeBalls(pathTimer, false, 70); // false = quick shoot (1.0s)
                 } else {
-                    shooter.accelerate(76.3);
-                    turret.aim();
+                    shooter.accelerate(70);
+                    turret.aimWithoutCompensation();
                 }
 
                 if (hasShot) {
@@ -238,7 +238,7 @@ public class blueTwelveBallClose extends OpMode {
 
         if (time < duration) {
             // Keep these running for the entire duration
-            turret.aim();
+            turret.aimWithoutCompensation();
             shooter.accelerate();
 
             // Only intake when the flywheel is (presumably) ready
@@ -263,7 +263,7 @@ public class blueTwelveBallClose extends OpMode {
 
         if (time < duration) {
             // Keep these running for the entire duration
-            turret.aim();
+            turret.aimWithoutCompensation();
             shooter.accelerate(distance);
 
             // Only intake when the flywheel is (presumably) ready
@@ -300,30 +300,30 @@ public class blueTwelveBallClose extends OpMode {
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(30.033, 134.767),
+                                    new Pose(144-30.033, 134.767),
 
-                                    new Pose(61, 91)
+                                    new Pose(144-61, 91)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(144))
+                    ).setLinearHeadingInterpolation(Math.toRadians(36), Math.toRadians(36))
 
                     .build();
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(61, 91),
+                                    new Pose(144-61, 91),
 
-                                    new Pose(57, 88)
+                                    new Pose(144-57, 88)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(180))
+                    ).setLinearHeadingInterpolation(Math.toRadians(36), Math.toRadians(0))
 
                     .build();
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(57, 88),
-                                    new Pose(26, 88)
+                                    new Pose(144-57, 88),
+                                    new Pose(144-24, 88)
                             )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
+                    ).setConstantHeadingInterpolation(Math.toRadians(0))
                     .setBrakingStrength(1.5)
                     .setBrakingStart(0.8)
 
@@ -331,56 +331,56 @@ public class blueTwelveBallClose extends OpMode {
 
             Path4 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(24, 88),
-                                    new Pose(33.4, 84),
-                                    new Pose(17, 80)
+                                    new Pose(144-24, 88),
+                                    new Pose(144-33.4, 84),
+                                    new Pose(144-17, 80)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(90))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
 
                     .build();
 
             Path5 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(17, 80),
-                                    new Pose(61, 91)
+                                    new Pose(144-17, 80),
+                                    new Pose(144-61, 91)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(144))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(36))
 
                     .build();
 
             Path6 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(61, 91),
+                                    new Pose(144-61, 91),
 
-                                    new Pose(55, 61.5)
+                                    new Pose(144-55, 61.5)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(180))
+                    ).setLinearHeadingInterpolation(Math.toRadians(36), Math.toRadians(0))
 
                     .build();
             Path7 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(55, 61.5),
+                                    new Pose(144-55, 61.5),
 
-                                    new Pose(19, 61.5)
+                                    new Pose(144-17, 61.5)
                             )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
+                    ).setConstantHeadingInterpolation(Math.toRadians(0))
                     .setBrakingStrength(1.5)
                     .setBrakingStart(0.8)
                     .build();
             Path8 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(17, 61.5),
-                                    new Pose(37, 62),
-                                    new Pose(61, 91)
+                                    new Pose(144-17, 61.5),
+                                    new Pose(144-37, 62),
+                                    new Pose(144-61, 91)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(144))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(36))
                     .build();
             Path9 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(61, 91),
-                                    new Pose(30, 80)
+                                    new Pose(144-61, 91),
+                                    new Pose(144-30, 80)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(90))
+                    ).setLinearHeadingInterpolation(Math.toRadians(36), Math.toRadians(90))
                     .build();
         }
     }
@@ -389,6 +389,11 @@ public class blueTwelveBallClose extends OpMode {
     public void stop() {
         Datavault.finalPose = follower.getPose();
         Datavault.turretPosition = turret.getTurretPosition();
+        cum();
+    }
+
+    public void cum () {
+        System.out.println("FUCCCCCCCKKKKKKKKKKKKKKKK IMMMMMMMMMMMMMMMM......");
     }
 }
 

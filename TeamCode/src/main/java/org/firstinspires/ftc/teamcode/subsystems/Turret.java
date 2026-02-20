@@ -38,7 +38,7 @@ public class Turret {
     final Pose BLUETARGET = new Pose(6.0, 143.0);
 
     // TODO: Tune these. Expect very different P values!
-    final PIDFController limelightPIDF = new PIDFController(0.015, 0.014, 0.00015, 0.005);
+    final PIDFController limelightPIDF = new PIDFController(0.012, 0.014, 0.00015, 0.005);
     final PIDFController odometryPIDF = new PIDFController(0.6, 0.2, 0.0, 0.005);
 
     double relativeTargetHeading;
@@ -150,6 +150,62 @@ public class Turret {
 
             rightTurretServo.setPower(power);
             leftTurretServo.setPower(power);
+        }
+    }
+    public void aimWithoutCompensation () {
+        limelight.start();
+        // Retrieve limelight data
+        LLResult llResult = limelight.getLatestResult();
+
+        if (llResult != null && llResult.isValid()) {
+            double power = limelightPIDF.calculate(llResult.getTx(), 0);
+            power = normalizePower(power);
+            isLLgetting = power;
+            rightTurretServo.setPower(power);
+            leftTurretServo.setPower(power);
+        } else {
+            // Fallback to Odometry
+            // We want turretPosition to match relativeTargetHeading
+            double targetPosition = AngleUnit.normalizeRadians(relativeTargetHeading);
+            double power = odometryPIDF.calculate(turretPosition, targetPosition);
+            power = normalizePower(-power);
+
+            rightTurretServo.setPower(power);
+            leftTurretServo.setPower(power);
+        }
+    }
+
+    public void aimWithoutOdometry () {
+        limelight.start();
+        // Retrieve limelight data
+        LLResult llResult = limelight.getLatestResult();
+
+        if (llResult != null && llResult.isValid()) {
+            double power = limelightPIDF.calculate(llResult.getTx(), 0);
+            power = normalizePower(power);
+            isLLgetting = power;
+            rightTurretServo.setPower(power);
+            leftTurretServo.setPower(power);
+        } else {
+            rightTurretServo.setPower(0);
+            leftTurretServo.setPower(0);
+        }
+    }
+
+    public void aimWithoutOdometry (double offset) {
+        limelight.start();
+        // Retrieve limelight data
+        LLResult llResult = limelight.getLatestResult();
+
+        if (llResult != null && llResult.isValid()) {
+            double power = limelightPIDF.calculate(llResult.getTx(), offset);
+            power = normalizePower(power);
+            isLLgetting = power;
+            rightTurretServo.setPower(power);
+            leftTurretServo.setPower(power);
+        } else {
+            rightTurretServo.setPower(0);
+            leftTurretServo.setPower(0);
         }
     }
 

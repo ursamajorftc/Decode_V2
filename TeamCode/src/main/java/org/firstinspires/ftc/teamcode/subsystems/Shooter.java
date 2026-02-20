@@ -31,7 +31,7 @@ public class Shooter {
     private double filteredDistance = 0;
     private double compensationCoefficient = 0.0; // TODO: Tune this!!
     final PIDFController flywheelPIDF = new PIDFController(0.002, 0.00005, 0.000003, 0.00022);
-    private double[] errorBuffer = new double[20]; // Stores last 20 errors
+    private double[] errorBuffer = new double[10]; // Stores last 20 errors
     private int bufferIndex = 0; // Tracks where we are in the array
     private double rollingErrorAverage = 0;
     boolean isRed;
@@ -115,7 +115,7 @@ public class Shooter {
 
         // Calculate power based on velocity error
         double currentRPM = getFlywheelRPM();
-        double targetRPM = 9.77 * compensatedDistance + 1815;
+        double targetRPM = 9.77 * compensatedDistance + 1830;
         double power = flywheelPIDF.calculate(currentRPM, targetRPM);
 
         flywheelMotorRight.setPower(power);
@@ -125,8 +125,9 @@ public class Shooter {
         telemetryDebug.createWatcher("Error", flywheelPIDF.getPositionError());
 
         updateErrorAverage(flywheelPIDF.getPositionError());
-        double targetPitch = Math.max(0.0, Math.min(0.86, -0.005 * compensatedDistance + 0.72));
+        double targetPitch = Math.max(0.0, Math.min(0.86, -0.005 * compensatedDistance + 0.54));
         pitchServo.setPosition((Math.abs(targetPitch - pitchServo.getPosition()) > 0.02) ? targetPitch : pitchServo.getPosition()); // 0.86 is the bottom max
+//        pitchServo.setPosition(0.15); // 0 is highest position, 0.86 is lowest
     }
     public void accelerate (double givenDistance) {
 
@@ -145,7 +146,7 @@ public class Shooter {
         telemetryDebug.createWatcher("Error", flywheelPIDF.getPositionError());
 
         updateErrorAverage(flywheelPIDF.getPositionError());
-        double targetPitch = Math.max(0.0, Math.min(0.86, -0.005 * givenDistance + 0.72));
+        double targetPitch = Math.max(0.0, Math.min(0.86, -0.006 * givenDistance + 0.72));
         pitchServo.setPosition((Math.abs(targetPitch - pitchServo.getPosition()) > 0.02) ? targetPitch : pitchServo.getPosition()); // 0.86 is the bottom max
     }
 
