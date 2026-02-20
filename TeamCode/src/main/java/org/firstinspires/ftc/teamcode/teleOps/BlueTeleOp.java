@@ -40,8 +40,8 @@ public class BlueTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(30.033, 134.767, Math.toRadians(144)));
-//        follower.setStartingPose(Datavault.finalPose);
+//        follower.setStartingPose(new Pose(30.033, 134.767, Math.toRadians(144)));
+        follower.setStartingPose(Datavault.finalPose);
 
         for (int i = 0; i < 3; i++) {
             follower.update();

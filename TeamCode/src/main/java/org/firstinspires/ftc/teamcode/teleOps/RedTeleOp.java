@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.utilities.Datavault;
 import org.firstinspires.ftc.teamcode.utilities.TelemetryDebug;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
@@ -40,7 +41,8 @@ public class RedTeleOp extends OpMode {
         }
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(53.40327868852459, 57.3377049180328, Math.PI));
+//        follower.setStartingPose(new Pose(53.40327868852459, 57.3377049180328, Math.PI));
+        follower.setStartingPose(Datavault.finalPose);
 
         for (int i = 0; i < 3; i++) {
             follower.update();
@@ -55,7 +57,7 @@ public class RedTeleOp extends OpMode {
 
         telemetryManager = PanelsTelemetry.INSTANCE.getTelemetry();
 
-
+        turret.setTurretPosition(Datavault.turretPosition);
     }
 
     public void start() {

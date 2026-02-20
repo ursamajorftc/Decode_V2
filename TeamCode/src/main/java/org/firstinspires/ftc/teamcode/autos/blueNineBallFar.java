@@ -17,14 +17,14 @@ import org.firstinspires.ftc.teamcode.utilities.Datavault;
 import org.firstinspires.ftc.teamcode.utilities.TelemetryDebug;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
-@Autonomous(name = "Red Far", group = "Competition Autos")
-public class redNineBallFar extends OpMode {
+@Autonomous(name = "Blue Far", group = "Competition Autos")
+public class blueNineBallFar extends OpMode {
     public Follower follower; // Pedro Pathing follower instance
     boolean hasShot = false;
     boolean hasBackspun = false;
     private Timer pathTimer, opmodeTimer;
     private int pathState = 1; // Current autonomous path state (state machine)
-    private redNineBallFar.Paths paths; // Paths defined in the Paths class
+    private blueNineBallFar.Paths paths; // Paths defined in the Paths class
     private Turret turret;
     private Shooter shooter;
     private Intake intake;
@@ -33,7 +33,7 @@ public class redNineBallFar extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(95.659, 8.000, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(95.659*-1+144, 8.000, Math.toRadians(90)));
 
         paths = new Paths(follower); // Build paths
 
@@ -43,8 +43,8 @@ public class redNineBallFar extends OpMode {
         opmodeTimer.resetTimer();
 
         telemetryDebug = new TelemetryDebug(telemetry);
-        turret = new Turret(hardwareMap, follower, true, telemetryDebug);
-        shooter = new Shooter(hardwareMap, true, telemetryDebug);
+        turret = new Turret(hardwareMap, follower, false, telemetryDebug);
+        shooter = new Shooter(hardwareMap, false, telemetryDebug);
         intake = new Intake(hardwareMap);
     }
 
@@ -132,18 +132,12 @@ public class redNineBallFar extends OpMode {
                 }
                 break;
             case 8:
-                shooter.accelerate(149.5);
-
-                // Always aim while in this state to be ready
-                if (pathTimer.getElapsedTimeSeconds() > 1.0) {
+                if (pathTimer.getElapsedTimeSeconds() > 2.5) {
+                    shootThreeBalls(pathTimer, false, 149.5); // false = quick shoot (1.0s)
+                } else {
+                    shooter.accelerate(149.5);
                     turret.aimWithoutOdometry(-1);
                 }
-
-                // Start the intake sequence after 2.5s
-                if (pathTimer.getElapsedTimeSeconds() > 2.5) {
-                    shootThreeBalls(pathTimer, false, 149.5);
-                }
-
                 if (hasShot) {
                     setPathState(9);
                 }
@@ -160,7 +154,7 @@ public class redNineBallFar extends OpMode {
                 }
                 break;
             case 11:
-                if (pathTimer.getElapsedTimeSeconds() > 2.5 && follower.atPose(new Pose(141.334, 9.443), 1, 2)) {
+                if (pathTimer.getElapsedTimeSeconds() > 2.5 && follower.atPose(new Pose(12, 10), 1, 2)) {
                     setPathState(115);
                     intake.stop();
                 } else {
@@ -189,18 +183,16 @@ public class redNineBallFar extends OpMode {
                 }
                 break;
             case 14:
-                shooter.accelerate(149.5);
-
-                // Always aim while in this state to be ready
-                if (pathTimer.getElapsedTimeSeconds() > 1.0) {
-                    turret.aimWithoutOdometry(-1);
-                }
-
-                // Start the intake sequence after 2.5s
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
-                    shootThreeBalls(pathTimer, false, 149.5);
+                    shootThreeBalls(pathTimer, false, 149.5); // false = quick shoot (1.0s)
+                } else {
+                    shooter.accelerate(149.5);
+                    if (pathTimer.getElapsedTimeSeconds() > 1) {
+                        turret.aimWithoutOdometry(-1);
+                    } else {
+                        turret.stop();
+                    }
                 }
-
                 if (hasShot) {
                     setPathState(15);
                 }
@@ -211,8 +203,8 @@ public class redNineBallFar extends OpMode {
                 break;
             case 16:
                 if (!follower.isBusy()){
-                    saveData();
                     setPathState(-1);
+                    saveData();
                     requestOpModeStop();
                 }
         }
@@ -262,7 +254,7 @@ public class redNineBallFar extends OpMode {
             turret.aimWithoutOdometry(-1);
             shooter.accelerate(distance);
 
-            // Only intake when the flywheel is (presumably) ready
+            // Only intake when the flywheel is ready
             if (sequenceTime >= intakeStartTime) {
                 intake.intake();
             } else {
@@ -304,39 +296,39 @@ public class redNineBallFar extends OpMode {
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(95.659, 8.000),
+                                    new Pose(95.659*-1+144, 8.000),
 
-                                    new Pose(101.089, 37)
+                                    new Pose(55, 35)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
 
                     .build();
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(101.089, 37),
+                                    new Pose(55, 35),
 
-                                    new Pose(129.875, 37)
+                                    new Pose(17, 35)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
                     .build();
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(129.875, 37),
+                                    new Pose(17, 35),
 
-                                    new Pose(95.472, 8.131)
+                                    new Pose(95.472*-1+144, 8.131)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(90))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(90))
 
                     .build();
 
             Path4 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(95.472, 8.131),
+                                    new Pose(95.472*-1+144, 8.131),
 
-                                    new Pose(141.593, 35.285)
+                                    new Pose(12, 35.285)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(270))
 
@@ -344,9 +336,9 @@ public class redNineBallFar extends OpMode {
 
             Path5 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(141.593, 35.285),
+                                    new Pose(12, 35.285),
 
-                                    new Pose(141.334, 9.443)
+                                    new Pose(12, 10)
                             )
                     ).setConstantHeadingInterpolation(Math.toRadians(270))
                     .setBrakingStrength(2)
@@ -354,18 +346,18 @@ public class redNineBallFar extends OpMode {
 
             Path6 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(141.334, 9.443),
-                                    new Pose(117.452, 31.497),
-                                    new Pose(95.738, 8.200)
+                                    new Pose(12, 10),
+                                    new Pose(117.452*-1+144, 31.497),
+                                    new Pose(95.738*-1+144, 8.200)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(90))
 
                     .build();
             Path7 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(95.738, 8.200),
+                                    new Pose(95.738*-1+144, 8.200),
 
-                                    new Pose(95.800, 20.262)
+                                    new Pose(95.800*-1+144, 20.262)
                             )
                     ).setConstantHeadingInterpolation(Math.toRadians(90))
 

@@ -17,10 +17,11 @@ import org.firstinspires.ftc.teamcode.utilities.Datavault;
 import org.firstinspires.ftc.teamcode.utilities.TelemetryDebug;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
-@Autonomous(name = "Blue Nine Ball Close", group = "Competition Autos")
+@Autonomous(name = "Blue Close", group = "Competition Autos")
 public class blueNineBallClose extends OpMode {
     public Follower follower; // Pedro Pathing follower instance
     boolean hasShot = false;
+    boolean hasBackspun = false;
     private Timer pathTimer, opmodeTimer;
     private int pathState = 1; // Current autonomous path state (state machine)
     private blueNineBallClose.Paths paths; // Paths defined in the Paths class
@@ -127,6 +128,13 @@ public class blueNineBallClose extends OpMode {
 
             case 9: // WAIT FOR PATH 4
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= 0.5) {
+                    setPathState(95);
+                }
+                break;
+
+            case 95:
+                backSpin(pathTimer, 0.2);
+                if (hasBackspun) {
                     setPathState(10);
                 }
                 break;
@@ -176,8 +184,14 @@ public class blueNineBallClose extends OpMode {
                 if (!follower.isBusy()) {
                     if (pathTimer.getElapsedTimeSeconds() >= 0.5) {
                         intake.stop();
-                        setPathState(16);
+                        setPathState(155);
                     }
+                }
+                break;
+            case 155:
+                backSpin(pathTimer, 0.15);
+                if (hasBackspun) {
+                    setPathState(16);
                 }
                 break;
             case 16:
@@ -217,7 +231,8 @@ public class blueNineBallClose extends OpMode {
                 break;
             case 21:
                 if (!follower.isBusy()) {
-                    stop();
+                    saveData();
+                    requestOpModeStop();
                     setPathState(-1);
                 }
                 break;
@@ -229,6 +244,7 @@ public class blueNineBallClose extends OpMode {
         this.pathState = pathState;
         pathTimer.resetTimer();
         hasShot = false;
+        hasBackspun = false;
     }
 
     public void shootThreeBalls(Timer pathTimer, boolean longShoot) {
@@ -279,6 +295,17 @@ public class blueNineBallClose extends OpMode {
             hasShot = true;
         }
 
+    }
+    public void backSpin(Timer pathTimer, double duration) {
+        double sequenceTime = pathTimer.getElapsedTimeSeconds();
+        if (sequenceTime <= duration) {
+            shooter.backSpin(1);
+            intake.backSpin(0.7);
+        } else {
+            intake.stop();
+            shooter.stop();
+            hasBackspun = true;
+        }
     }
 
     @Configurable
@@ -385,13 +412,14 @@ public class blueNineBallClose extends OpMode {
         }
     }
 
-    @Override
-    public void stop() {
+    public void saveData() {
         Datavault.finalPose = follower.getPose();
         Datavault.turretPosition = turret.getTurretPosition();
     }
-    public void cum () {
-        System.out.println("FUCCCCCCCKKKKKKKKKKKKKKKK");
+
+    @Override
+    public void stop() {
+        saveData();
     }
 }
 
