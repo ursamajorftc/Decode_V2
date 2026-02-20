@@ -77,10 +77,10 @@ public class redNineBallFar extends OpMode {
         switch (pathState) {
             case 1:
                 if (pathTimer.getElapsedTimeSeconds() >= 0.1) {
-                    shootThreeBalls(pathTimer, true, 145);
+                    shootThreeBalls(pathTimer, true, 146);
                 } else {
                     turret.aimWithoutOdometry(-1);
-                    shooter.accelerate(145);
+                    shooter.accelerate(146);
                 }
                 if (hasShot) {
                     setPathState(2);
@@ -121,21 +121,21 @@ public class redNineBallFar extends OpMode {
                 }
                 break;
             case 6:
-                shooter.accelerate(146);
+                shooter.accelerate(148);
                 follower.followPath(paths.Path3);
                 setPathState(7);
                 break;
             case 7:
-                shooter.accelerate(146);
+                shooter.accelerate(148);
                 if (!follower.isBusy()) {
                     setPathState(8);
                 }
                 break;
             case 8:
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
-                    shootThreeBalls(pathTimer, false, 146); // false = quick shoot (1.0s)
+                    shootThreeBalls(pathTimer, false, 148); // false = quick shoot (1.0s)
                 } else {
-                    shooter.accelerate(146);
+                    shooter.accelerate(148);
                     turret.aimWithoutOdometry(-1);
                 }
                 if (hasShot) {
@@ -154,15 +154,15 @@ public class redNineBallFar extends OpMode {
                 }
                 break;
             case 11:
-                if (pathTimer.getElapsedTimeSeconds() > 2.5) {
-                    setPathState(121);
+                if (pathTimer.getElapsedTimeSeconds() > 2.5 && follower.atPose(new Pose(141.334, 9.443), 1, 1)) {
+                    setPathState(115);
                     intake.stop();
                 } else {
                     intake.intake();
                 }
 
                 break;
-            case 121:
+            case 115:
                 backSpin(pathTimer, 0.2);
                 if (hasBackspun) {
                     setPathState(12);
@@ -170,23 +170,28 @@ public class redNineBallFar extends OpMode {
                 break;
             case 12:
                 if (!follower.isBusy()) {
-                    shooter.accelerate(146);
+                    shooter.accelerate(148);
                     follower.followPath(paths.Path6);
                     setPathState(13);
                 }
                 break;
             case 13:
-                shooter.accelerate(146);
+                shooter.accelerate(148);
+                turret.stop();
                 if (!follower.isBusy()) {
                     setPathState(14);
                 }
                 break;
             case 14:
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
-                    shootThreeBalls(pathTimer, false, 146); // false = quick shoot (1.0s)
+                    shootThreeBalls(pathTimer, false, 148); // false = quick shoot (1.0s)
                 } else {
-                    shooter.accelerate(146);
-                    turret.aimWithoutOdometry(-1);
+                    shooter.accelerate(148);
+                    if (pathTimer.getElapsedTimeSeconds() > 1) {
+                        turret.aimWithoutOdometry(-1);
+                    } else {
+                        turret.stop();
+                    }
                 }
                 if (hasShot) {
                     setPathState(15);
@@ -199,7 +204,7 @@ public class redNineBallFar extends OpMode {
             case 16:
                 if (!follower.isBusy()){
                     setPathState(-1);
-                    stop();
+                    requestOpModeStop();
                 }
         }
 
@@ -239,17 +244,17 @@ public class redNineBallFar extends OpMode {
     }
 
     public void shootThreeBalls(Timer pathTimer, boolean longShoot, double distance) {
-        double time = pathTimer.getElapsedTimeSeconds();
+        double sequenceTime = pathTimer.getElapsedTimeSeconds();
         double duration = longShoot ? 5.75 : 4;
         double intakeStartTime = longShoot ? 3.0 : 0.75;
 
-        if (time < duration) {
+        if (sequenceTime < duration) {
             // Keep these running for the entire duration
             turret.aimWithoutOdometry(-1);
             shooter.accelerate(distance);
 
             // Only intake when the flywheel is (presumably) ready
-            if (time >= intakeStartTime) {
+            if (sequenceTime >= intakeStartTime) {
                 intake.intake();
             } else {
                 intake.stop();
@@ -264,8 +269,8 @@ public class redNineBallFar extends OpMode {
     }
 
     public void backSpin(Timer pathTimer, double duration) {
-        time = pathTimer.getElapsedTimeSeconds();
-        if (time <= duration) {
+        double sequenceTime = pathTimer.getElapsedTimeSeconds();
+        if (sequenceTime <= duration) {
             shooter.backSpin(1);
             intake.backSpin(0.7);
         } else {
@@ -335,7 +340,7 @@ public class redNineBallFar extends OpMode {
                                     new Pose(141.334, 9.443)
                             )
                     ).setConstantHeadingInterpolation(Math.toRadians(270))
-
+                    .setBrakingStrength(2)
                     .build();
 
             Path6 = follower.pathBuilder().addPath(
@@ -365,11 +370,7 @@ public class redNineBallFar extends OpMode {
     public void stop() {
         Datavault.finalPose = follower.getPose();
         Datavault.turretPosition = turret.getTurretPosition();
-        cum();
     }
 
-    public void cum() {
-        System.out.println("FUCCCCCCCKKKKKKKKKKKKKKKK IMMMMMMMMMMMMMMMM......");
-    }
 }
 
