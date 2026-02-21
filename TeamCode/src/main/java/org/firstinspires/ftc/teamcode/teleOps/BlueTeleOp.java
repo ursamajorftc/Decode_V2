@@ -90,7 +90,7 @@ public class BlueTeleOp extends OpMode {
 // --- SHOOTER & TURRET CONTROL ---
         if (gamepad1.right_bumper) {
             // Shooting takes top priority
-            turret.aim();
+            turret.aimWithoutOdometry();
             shooter.accelerate();
         } else if (gamepad1.dpad_down) {
             // Backspin happens if we aren't shooting

@@ -115,7 +115,7 @@ public class Shooter {
 
         // Calculate power based on velocity error
         double currentRPM = getFlywheelRPM();
-        double targetRPM = 9.77 * compensatedDistance + 1830;
+        double targetRPM = 9.77 * compensatedDistance + 1820;
         double power = flywheelPIDF.calculate(currentRPM, targetRPM);
 
         flywheelMotorRight.setPower(power);
@@ -125,9 +125,10 @@ public class Shooter {
         telemetryDebug.createWatcher("Error", flywheelPIDF.getPositionError());
 
         updateErrorAverage(flywheelPIDF.getPositionError());
-        double targetPitch = Math.max(0.0, Math.min(0.86, -0.005 * compensatedDistance + 0.54));
-        pitchServo.setPosition((Math.abs(targetPitch - pitchServo.getPosition()) > 0.02) ? targetPitch : pitchServo.getPosition()); // 0.86 is the bottom max
-//        pitchServo.setPosition(0.15); // 0 is highest position, 0.86 is lowest
+        double targetPitch = Math.max(0.0, Math.min(0.86, -0.005 * compensatedDistance + 0.42));
+
+       pitchServo.setPosition((Math.abs(targetPitch - pitchServo.getPosition()) > 0.02) ? targetPitch : pitchServo.getPosition()); // 0.86 is the bottom max
+       //pitchServo.setPosition(0.50); // 0 is highest position, 0.86 is lowest
     }
     public void accelerate (double givenDistance) {
 
@@ -147,7 +148,8 @@ public class Shooter {
 
         updateErrorAverage(flywheelPIDF.getPositionError());
         double targetPitch = Math.max(0.0, Math.min(0.86, -0.006 * givenDistance + 0.72));
-        pitchServo.setPosition((Math.abs(targetPitch - pitchServo.getPosition()) > 0.02) ? targetPitch : pitchServo.getPosition()); // 0.86 is the bottom max
+        //pitchServo.setPosition((Math.abs(targetPitch - pitchServo.getPosition()) > 0.02) ? targetPitch : pitchServo.getPosition()); // 0.86 is the bottom max
+        //pitchServo.setPosition(0.0); // 0 is highest position, 0.86 is lowest
     }
 
     public void updateErrorAverage(double currentError) {
