@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 import java.util.List;
 
-@TeleOp (name = "Red TeleOp", group = "Competition TeleOps")
+@TeleOp (name = "Blue TeleOp", group = "Competition TeleOps")
 public class RedTeleOp extends OpMode {
     private Intake intake;
     private Turret turret;
@@ -63,6 +63,7 @@ public class RedTeleOp extends OpMode {
     public void start() {
         follower.startTeleOpDrive();
         shooter.start();
+        shooter.limelight.pipelineSwitch(0);
     }
 
     @Override
@@ -77,7 +78,7 @@ public class RedTeleOp extends OpMode {
             follower.setTeleOpDrive(
                     -gamepad1.left_stick_y, // Forward/Back
                     -gamepad1.left_stick_x, // Strafe
-                    -gamepad1.right_stick_x * 0.5, // Turn
+                    -gamepad1.right_stick_x * 0.6, // Turn
                     true // TRUE = Robot Centric
             );
         }
@@ -95,7 +96,7 @@ public class RedTeleOp extends OpMode {
 // --- SHOOTER & TURRET CONTROL ---
         if (gamepad1.right_bumper) {
             // Shooting takes top priority
-            turret.aim();
+            turret.aimWithoutOdometry();
             shooter.accelerate();
         } else if (gamepad1.dpad_down) {
             // Backspin happens if we aren't shooting

@@ -76,6 +76,9 @@ public class Turret {
      * Calculates relative position of the target using odometry
      */
     public void update() {
+        if (!isRed) {limelight.pipelineSwitch(0);}
+        else {limelight.pipelineSwitch(1);}
+
         // Calculate turret angle relative to the robot chassis
         turretPosition = AngleUnit.normalizeRadians(turretEncoder.getCurrentPosition() * RADIANSPERTICK);
 

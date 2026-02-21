@@ -17,7 +17,7 @@ public class Shooter {
     Servo pitchServo;
     TelemetryDebug telemetryDebug;
     Servo light;
-    Limelight3A limelight;
+    public Limelight3A limelight;
 
     // Calculation Variables
     double distanceFromTarget;
@@ -66,6 +66,7 @@ public class Shooter {
 
     public void start() {
         light.setPosition(0.29);
+
     }
 
     /**
@@ -74,6 +75,9 @@ public class Shooter {
     public void update() {
         light.setPosition(isAccelerated() ? 0.57 : 0.29);
         telemetryDebug.createWatcher("Shooter Compensation Coefficient", compensationCoefficient);
+
+        if (!isRed) {limelight.pipelineSwitch(0);}
+        else {limelight.pipelineSwitch(1);}
     }
 
     /**

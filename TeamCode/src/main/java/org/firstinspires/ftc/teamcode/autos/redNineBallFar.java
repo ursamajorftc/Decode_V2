@@ -77,10 +77,10 @@ public class redNineBallFar extends OpMode {
         switch (pathState) {
             case 1:
                 if (pathTimer.getElapsedTimeSeconds() >= 0.1) {
-                    shootThreeBalls(pathTimer, true, 148);
+                    pulseThreeBalls(pathTimer, true, 149);
                 } else {
                     turret.aimWithoutOdometry(-1);
-                    shooter.accelerate(148);
+                    shooter.accelerate(149);
                 }
                 if (hasShot) {
                     setPathState(2);
@@ -121,18 +121,18 @@ public class redNineBallFar extends OpMode {
                 }
                 break;
             case 6:
-                shooter.accelerate(149.5);
+                shooter.accelerate(151.5);
                 follower.followPath(paths.Path3);
                 setPathState(7);
                 break;
             case 7:
-                shooter.accelerate(149.5);
+                shooter.accelerate(151.5);
                 if (!follower.isBusy()) {
                     setPathState(8);
                 }
                 break;
             case 8:
-                shooter.accelerate(149.5);
+                shooter.accelerate(151.5);
 
                 // Always aim while in this state to be ready
                 if (pathTimer.getElapsedTimeSeconds() > 1.0) {
@@ -141,7 +141,7 @@ public class redNineBallFar extends OpMode {
 
                 // Start the intake sequence after 2.5s
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
-                    shootThreeBalls(pathTimer, false, 149.5);
+                    pulseThreeBalls(pathTimer, false, 151.5);
                 }
 
                 if (hasShot) {
@@ -176,20 +176,20 @@ public class redNineBallFar extends OpMode {
                 break;
             case 12:
                 if (!follower.isBusy()) {
-                    shooter.accelerate(149.5);
+                    shooter.accelerate(151.5);
                     follower.followPath(paths.Path6);
                     setPathState(13);
                 }
                 break;
             case 13:
-                shooter.accelerate(149.5);
+                shooter.accelerate(151.5);
                 turret.stop();
                 if (!follower.isBusy()) {
                     setPathState(14);
                 }
                 break;
             case 14:
-                shooter.accelerate(149.5);
+                shooter.accelerate(151.5);
 
                 // Always aim while in this state to be ready
                 if (pathTimer.getElapsedTimeSeconds() > 1.0) {
@@ -198,7 +198,7 @@ public class redNineBallFar extends OpMode {
 
                 // Start the intake sequence after 2.5s
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
-                    shootThreeBalls(pathTimer, false, 149.5);
+                    pulseThreeBalls(pathTimer, false, 151.5);
                 }
 
                 if (hasShot) {
@@ -275,6 +275,30 @@ public class redNineBallFar extends OpMode {
             hasShot = true;
         }
 
+    }
+
+    public void pulseThreeBalls(Timer pathTimer, boolean longShoot, double distance) {
+        double sequenceTime = pathTimer.getElapsedTimeSeconds();
+        double duration = longShoot ? 5.5 : 3.25;
+        if (sequenceTime < duration) {
+            turret.aimWithoutOdometry();
+            shooter.accelerate(distance);
+        } else {
+            turret.stop();
+            shooter.stop();
+            hasShot = true;
+        }
+        double accelerationTime = (longShoot ? 3.0 : 0.75);
+
+        if (sequenceTime >= accelerationTime && sequenceTime < accelerationTime+0.5) {
+            intake.intake();
+        } else if (sequenceTime >= accelerationTime+0.8 && sequenceTime < accelerationTime+1.3) {
+            intake.intake();
+        } else if (sequenceTime >= accelerationTime + 1.6 && sequenceTime < accelerationTime + 2.4) {
+            intake.intake();
+        } else {
+            intake.stop();
+        }
     }
 
     public void backSpin(Timer pathTimer, double duration) {
